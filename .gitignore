@@ -1,0 +1,7 @@
+target/
+build
+dist
+env-*
+*.egg-info
+*.pyc
+.idea

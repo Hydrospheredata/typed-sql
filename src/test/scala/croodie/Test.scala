@@ -24,8 +24,8 @@ class Test extends FunSpec {
     val z = 'z.narrow
     val y = 'y.narrow
     val w = 'w.narrow
-    val x = Select.tableOf[Row].name("my_table")
-    val sle = x.select('a.narrow, 'c.narrow)
+    val table = Select.tableOf[Row].name("my_table")
+    val sle = table.select('a.narrow)
     println(sle.fr)
   }
 }

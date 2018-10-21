@@ -33,10 +33,6 @@ class Test extends FunSpec {
 
   it("asddas") {
 
-//    val z = 'z.narrow
-//    val y = 'y.narrow
-//    val w = 'w.narrow
-
     val creareSql = sql"create table test (a serial primary key, b text, c text)"
     creareSql.update.run.transact(xa).unsafeRunSync()
 
@@ -47,10 +43,11 @@ class Test extends FunSpec {
 
 
     val table = Select.tableOf[Row].name("test")
-    val sle = table.select('b.narrow)
-//
-//
-    println(sle.query.to[List].transact(xa).unsafeRunSync())
+
+    val selectStar = table.select('*.narrow)
+    println(selectStar.query.to[List].transact(xa).unsafeRunSync())
+    val selectFields = table.select('a.narrow, 'b.narrow)
+    println(selectFields.query.to[List].transact(xa).unsafeRunSync())
 //    println(sle.fr)
   }
 }

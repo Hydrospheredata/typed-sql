@@ -1,7 +1,10 @@
 package croodie
 
+import doobie.util.Read
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param
+import doobie.util.query.Query0
+import doobie.util.update.Update0
 import shapeless.labelled.FieldType
 import shapeless.ops.hlist.Selector
 import shapeless.ops.record.Fields
@@ -17,11 +20,14 @@ class Select[Fields <: HList, Query <: HList](
 ) {
 
   def fr: Fragment = {
-    val str = "SELECT " + fields.map(n => name + "." + n).mkString(", ") + " FROM name"
+    val str = "SELECT " + fields.map(n => name + "." + n).mkString(", ") + " FROM " + name
     Fragment[HNil](str, HNil, None)(Param.ParamHNil.write)
   }
 
+  def query[R <: HList](implicit ft: FieldTypes.Aux[Query, R], r: Read[R]): Query0[R] = fr.query[R]
+
 }
+
 
 object Select {
 
@@ -29,7 +35,7 @@ object Select {
 
     def select[F, H <: HList, O <: HList](fields: F)(
       implicit
-      asHList: AsHList.Aux[F, H],
+      hlister: HLister.Aux[F, H],
       fSelector: FieldSelector.Aux[A, H, O],
       names: FieldNames[O]
     ): Select[A, O] = {

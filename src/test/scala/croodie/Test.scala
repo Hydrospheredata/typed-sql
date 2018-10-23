@@ -12,8 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 case class Row(
   a: Int,
-  c: String,
-  b: String
+  b: String,
+  c: String
 )
 
 class Test extends FunSpec {
@@ -77,7 +77,7 @@ class Test extends FunSpec {
     println()
 
     println("SELECT *")
-    println(selectStar.query.to[List].transact(xa).unsafeRunSync())
+    println(selectStar.query.to[List].transact(xa).unsafeRunSync().mkString("\n"))
     println()
   }
 }

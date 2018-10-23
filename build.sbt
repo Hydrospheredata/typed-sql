@@ -1,5 +1,4 @@
 scalaVersion := "2.12.7"
-sourceGenerators in Compile += (sourceManaged in Compile).map(dir => Boilerplate.gen(dir)).taskValue
 libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.3",
   "org.tpolecat" %% "doobie-core"      % "0.6.0",

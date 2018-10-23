@@ -3,7 +3,6 @@ package croodie
 import org.scalatest.FunSpec
 
 import cats.effect.{Async, ContextShift, IO}
-import croodie.FieldSelector.GetField
 import org.scalatest.FunSpec
 import shapeless._
 import doobie._

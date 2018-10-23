@@ -35,27 +35,27 @@ case class Select[F <: HList, R](
 
 }
 
-trait SelectionInfer[F <: HList, Q] {
+trait SelectionInfer[Orig, F <: HList, Q] {
   type Out
   def fields(): List[String]
 }
 trait LowPrioSelection {
 
-  type Aux[F <: HList, Q, Out0] = SelectionInfer[F, Q] { type Out = Out0 }
+  type Aux[Orig, F <: HList, Q, Out0] = SelectionInfer[Orig, F, Q] { type Out = Out0 }
 
-  implicit def hnil[F <: HList]: Aux[F, HNil, HNil] = new SelectionInfer[F, HNil]{
+  implicit def hnil[Orig, F <: HList]: Aux[Orig, F, HNil, HNil] = new SelectionInfer[Orig, F, HNil]{
     type Out = HNil
     def fields(): List[String] = List.empty
   }
 
-  implicit def hCons[F <: HList, K, V, T <: HList, Z <: HList](
+  implicit def hCons[Orig, F <: HList, K, V, T <: HList, Z <: HList](
     implicit
     selector: Selector.Aux[F, K, V],
     wit: Witness.Aux[K],
     ev: K <:< Symbol,
-    next: SelectionInfer.Aux[F, T, Z]
-  ): Aux[F, K :: T, V :: Z] = {
-    new SelectionInfer[F, K :: T] {
+    next: SelectionInfer.Aux[Orig, F, T, Z]
+  ): Aux[Orig, F, K :: T, V :: Z] = {
+    new SelectionInfer[Orig, F, K :: T] {
       type Out = V :: Z
       def fields(): List[String] = wit.value.name :: next.fields()
     }
@@ -66,13 +66,12 @@ object SelectionInfer extends LowPrioSelection {
 
   type STAR = Witness.`'*`.T
 
-  implicit def forStar[F <: HList, O <: HList](
+  implicit def forStar[Orig, F <: HList, O <: HList](
     implicit
-    names: FieldNames[F],
-    values: Values.Aux[F, O]
-  ): Aux[F, STAR :: HNil, O] = {
-    new SelectionInfer[F, STAR :: HNil] {
-      type Out = O
+    names: FieldNames[F]
+  ): Aux[Orig, F, STAR :: HNil, Orig] = {
+    new SelectionInfer[Orig, F, STAR :: HNil] {
+      type Out = Orig
       def fields(): List[String] = names()
     }
   }
@@ -103,7 +102,7 @@ class UpsertOps[Orig, H <: HList, Id](
   }
 
   def updateFr(in: H, id: Id): Fragment = {
-    val fields = otherFields.map(f => s"$f = ?").mkString("(", ",", ")")
+    val fields = otherFields.map(f => s"$f = ?").mkString(", ")
     val sql1 = s"UPDATE $tableName SET $fields"
     val fr1 = Fragment[H](sql1, in, None)(p1.write)
     val sql2 = s" WHERE $idC = ?"
@@ -125,7 +124,7 @@ object Select {
   class Table[Orig, F <: HList](name: String) {
 
     object select extends ProductArgs {
-      def applyProduct[Q, O](q: Q)(implicit inf: SelectionInfer.Aux[F, Q, O]): Select[F, O] =
+      def applyProduct[Q, O](q: Q)(implicit inf: SelectionInfer.Aux[Orig, F, Q, O]): Select[F, O] =
         new Select(name, inf.fields())
     }
 

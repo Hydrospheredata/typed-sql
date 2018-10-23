@@ -1,14 +1,11 @@
 package croodie
 
-import croodie.FieldSelector.GetField
 import doobie.util.Read
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param
 import doobie.util.query.Query0
 import shapeless._
-import shapeless.labelled.FieldType
 import shapeless.ops.record.Selector
-import shapeless.tag.@@
 
 sealed trait ExprTree extends Product with Serializable
 final case class Eq[Q, V](q: Q, v: V) extends ExprTree
@@ -16,7 +13,7 @@ final case class Less[Q, V](q: Q, v: V) extends ExprTree
 final case class Greater[Q, V](q: Q, v: V) extends ExprTree
 
 final case class And[A, B](a: A, b: B) extends ExprTree
-final case class Or[A <: ExprTree, B <: ExprTree](a: A, b: B) extends ExprTree
+final case class Or[A, B](a: A, b: B) extends ExprTree
 
 sealed trait LowExpr { self =>
 
@@ -57,10 +54,7 @@ object WhereUnit {
   def eq[A](f: String, p: Param[A]): WhereUnit[A] = WhereUnit(s"$f = ?", p)
   def less[A](f: String, p: Param[A]): WhereUnit[A] = WhereUnit(s"$f < ?", p)
   def greater[A](f: String, p: Param[A]): WhereUnit[A] = WhereUnit(s"$f > ?", p)
-
 }
-
-
 
 /**
   * F - all table fields
@@ -77,7 +71,7 @@ object WhereInfer {
 
   type Aux[F <: HList, Q, Out0] = WhereInfer[F, Q] { type Out = Out0 }
 
-  implicit def forEqOp[F <: HList, K, V, TT](
+  implicit def eqOp[F <: HList, K, V, TT](
     implicit
     selector: Selector.Aux[F, K, TT],
     wt: Witness.Aux[K],
@@ -91,7 +85,35 @@ object WhereInfer {
     }
   }
 
-  implicit def forAndOp[F <: HList, A, B, AOut, BOut, Joined](
+  implicit def lessOp[F <: HList, K, V, TT](
+    implicit
+    selector: Selector.Aux[F, K, TT],
+    wt: Witness.Aux[K],
+    ev: K <:< Symbol,
+    ev2: V =:= TT
+  ): Aux[F, Less[K, V], V] = {
+    new WhereInfer[F, Less[K, V]] {
+      type Out = V
+      def expr: LowExpr = LowExpr.Less(wt.value.name)
+      def in(less: Less[K, V]): V = less.v
+    }
+  }
+
+  implicit def greaterOp[F <: HList, K, V, TT](
+    implicit
+    selector: Selector.Aux[F, K, TT],
+    wt: Witness.Aux[K],
+    ev: K <:< Symbol,
+    ev2: V =:= TT
+  ): Aux[F, Greater[K, V], V] = {
+    new WhereInfer[F, Greater[K, V]] {
+      type Out = V
+      def expr: LowExpr = LowExpr.Greater(wt.value.name)
+      def in(gt: Greater[K, V]): V = gt.v
+    }
+  }
+
+  implicit def andOp[F <: HList, A, B, AOut, BOut, Joined](
     implicit
     aInf: WhereInfer.Aux[F, A, AOut],
     bInf: WhereInfer.Aux[F, B, BOut],
@@ -101,6 +123,19 @@ object WhereInfer {
       type Out = Joined
       def expr: LowExpr = LowExpr.And(aInf.expr, bInf.expr)
       def in(and: And[A, B]): Joined = join(aInf.in(and.a), bInf.in(and.b))
+    }
+  }
+
+  implicit def orOp[F <: HList, A, B, AOut, BOut, Joined](
+    implicit
+    aInf: WhereInfer.Aux[F, A, AOut],
+    bInf: WhereInfer.Aux[F, B, BOut],
+    join: Join.Aux[AOut, BOut, Joined],
+  ): Aux[F, Or[A, B], Joined] = {
+    new WhereInfer[F, Or[A, B]] {
+      type Out = Joined
+      def expr: LowExpr = LowExpr.Or(aInf.expr, bInf.expr)
+      def in(or: Or[A, B]): Joined = join(aInf.in(or.a), bInf.in(or.b))
     }
   }
 

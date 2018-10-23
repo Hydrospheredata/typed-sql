@@ -40,14 +40,16 @@ case class Row22(
   w: String
 )
 
-class SelectSpec extends FunSpec {
+class DslSpec extends FunSpec {
 
   import shapeless._
   import syntax.singleton._
 
-  it("select") {
+  import shapeless.test._
 
-    val table = Select.tableOf[Row22].name("test")
+  val table = Select.tableOf[Row22].name("test")
+
+  it("select") {
 
     table.select('*.narrow)
 
@@ -55,8 +57,21 @@ class SelectSpec extends FunSpec {
 
     table.select('w.narrow)
 
-    import shapeless.test._
-
     illTyped { """ table.select('invalid.narrow)""" }
+  }
+
+  it("where") {
+    import cmp._
+
+    table.select('*.narrow).where(eqOp('a)(1))
+    table.select('*.narrow).where(lessOp('a)(1))
+    table.select('*.narrow).where(greaterOp('a)(1))
+
+    illTyped { """table.select('*.narrow).where(eqOp('a)("zzzz")) """}
+
+    table.select('*.narrow).where(Or(eqOp('a)(1), eqOp('a)(2)))
+    table.select('*.narrow).where(And(greaterOp('a)(10), lessOp('a)(20)))
+
+    table.select('*.narrow).where(And(greaterOp('a)(10), eqOp('w)("WWW")))
   }
 }

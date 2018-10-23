@@ -16,22 +16,20 @@ object FieldSelector {
     type Out
   }
 
-  trait LowPrioGetField {
+  object GetField extends {
 
     type Aux[In <: HList, A, Out0] = GetField[In, A] { type Out = Out0 }
 
-    implicit def hListNotMatch[H, T <: HList, K, O](
+    implicit def select[T <: HList, K, V]: Aux[FieldType[K, V] :: T, K, FieldType[K, V]] =
+      new GetField[FieldType[K, V] :: T, K] {
+        type Out = FieldType[K ,V]
+      }
+
+    implicit def recurse[H, T <: HList, K, O](
       implicit
       next: GetField.Aux[T, K, O]
     ): Aux[H :: T, K, FieldType[K, O]] = new GetField[H :: T, K] {
       type Out = FieldType[K ,O]
-    }
-  }
-
-  object GetField extends LowPrioGetField {
-
-    implicit def hListMatch[T <: HList, K, V]: Aux[FieldType[K, V] :: T, K, FieldType[K, V]] = new GetField[FieldType[K, V] :: T, K] {
-      type Out = FieldType[K ,V]
     }
 
     def apply[From <: HList, A](implicit v: GetField[From, A]): GetField[From, A] = v

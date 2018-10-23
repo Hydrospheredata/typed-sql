@@ -18,6 +18,8 @@ trait LowerPriorityHLister {
     override type Out = A :: HNil
     override def apply(a: A): A :: HNil = a :: HNil
   }
+
+  def apply[A](implicit h: HLister[A]): HLister[A] = h
 }
 
 object HLister extends HListerInstances

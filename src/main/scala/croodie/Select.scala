@@ -1,95 +1,100 @@
 package croodie
 
-import doobie.util.Read
+import doobie.util.{Read, Write}
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 import shapeless.labelled.FieldType
-import shapeless.ops.hlist.{Selector, Tupler}
-import shapeless.ops.record.Fields
-import shapeless.{HList, HNil, LabelledGeneric, Witness}
+import shapeless.ops.hlist.{SelectMany, Tupler}
+import shapeless.ops.record.{Fields, Keys, Selector, Values}
+import shapeless.{HList, HNil, LabelledGeneric, ProductArgs, Witness}
+import shapeless._
 
 sealed trait Expr[Out] {
   def fr: Fragment
 }
 
 
-class Select[F <: HList, R](
-  name: String,
-  fields: List[String],
-  read: Read[R]
-) {
+case class Select[F <: HList, R](
+  tableName: String,
+  fields: List[String]
+) { self =>
 
   def fr: Fragment = {
-    val str = "SELECT " + fields.map(n => name + "." + n).mkString(", ") + " FROM " + name
+    val str = "SELECT " + fields.map(n => tableName + "." + n).mkString(", ") + " FROM " + tableName
     Fragment[HNil](str, HNil, None)(Param.ParamHNil.write)
   }
 
-  def query: Query0[R] = fr.query[R](read)
+  def where[E <: ExprTree, O](expr: E)(implicit wi: WhereInfer.Aux[F, E, O]): Where[F, R, O] = {
+    new Where(self, wi.in(expr), wi.expr)
+  }
+
+  def query(implicit read: Read[R]): Query0[R] = fr.query[R](read)
 
 }
 
-/**
-  * Orig - table case class
-  * F - all table fields
-  * Q - selection
-  */
-trait SelectBuilder[Orig, F <: HList, Q] {
+trait SelectionInfer[F <: HList, Q] {
   type Out
-  def mk(tableName: String): Select[F, Out]
+  def fields(): List[String]
 }
+trait LowPrioSelection {
 
-trait LowPrioSelectBuilder {
+  type Aux[F <: HList, Q, Out0] = SelectionInfer[F, Q] { type Out = Out0 }
 
-  type Aux[Orig, F <: HList, Q, Out0] = SelectBuilder[Orig, F, Q] { type Out = Out0 }
+  implicit def hnil[F <: HList]: Aux[F, HNil, HNil] = new SelectionInfer[F, HNil]{
+    type Out = HNil
+    def fields(): List[String] = List.empty
+  }
 
-  implicit def select[Orig, F <: HList, Q, H <: HList, O <: HList, OT <: HList, Tuple](
+  implicit def hCons[F <: HList, K, V, T <: HList, Z <: HList](
     implicit
-    hlister: HLister.Aux[Q, H],
-    fSelector: FieldSelector.Aux[F, H, O],
-    names: FieldNames[O],
-    ft: FieldTypes.Aux[O, OT],
-    tupler: Tupler.Aux[OT, Tuple],
-    read: Read[OT]
-  ): Aux[Orig, F, Q, Tuple] = {
-    new SelectBuilder[Orig, F, Q] {
-      type Out = Tuple
-      def mk(tableName: String): Select[F, Tuple] =
-        new Select[F, Tuple](tableName, names(), read.map(hlist => tupler(hlist)))
+    selector: Selector.Aux[F, K, V],
+    wit: Witness.Aux[K],
+    ev: K <:< Symbol,
+    next: SelectionInfer.Aux[F, T, Z]
+  ): Aux[F, K :: T, V :: Z] = {
+    new SelectionInfer[F, K :: T] {
+      type Out = V :: Z
+      def fields(): List[String] = wit.value.name :: next.fields()
     }
   }
 }
 
-object SelectBuilder extends LowPrioSelectBuilder {
-  implicit def forStar[Orig, F <: HList, Q](
+object SelectionInfer extends LowPrioSelection {
+
+  type STAR = Witness.`'*`.T
+
+  implicit def forStar[F <: HList, O <: HList](
     implicit
-    ev: Q =:= Witness.`'*`.T,
     names: FieldNames[F],
-    r: Read[Orig]
-  ): Aux[Orig, F, Q, Orig] = {
-    new SelectBuilder[Orig, F, Q] {
-      type Out = Orig
-      def mk(tableName: String): Select[F, Orig] = new Select[F, Orig](tableName, names(), r)
+    values: Values.Aux[F, O]
+  ): Aux[F, STAR :: HNil, O] = {
+    new SelectionInfer[F, STAR :: HNil] {
+      type Out = O
+      def fields(): List[String] = names()
     }
   }
 }
+
 
 object Select {
 
 
   class Table[Orig, F <: HList](name: String) {
 
-    def select[Q, O](query: Q)(implicit b: SelectBuilder.Aux[Orig, F, Q, O]): Select[F, O] = b.mk(name)
+    object select extends ProductArgs {
+      def applyProduct[Q, O](q: Q)(implicit inf: SelectionInfer.Aux[F, Q, O]): Select[F, O] =
+        new Select(name, inf.fields())
+    }
   }
 
   object tableOf {
     def apply[Orig] = new TableBuild[Orig]
     class TableBuild[Orig] {
       def name[H <: HList, F <: HList](name: String)(
-        implicit labGen: LabelledGeneric.Aux[Orig, H],
-        fields: CollectFields.Aux[H, F]
-      ): Table[Orig, F] = new Table[Orig, F](name)
+        implicit labGen: LabelledGeneric.Aux[Orig, H]
+      ): Table[Orig, H] = new Table[Orig, H](name)
     }
   }
 

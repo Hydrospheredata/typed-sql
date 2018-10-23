@@ -40,6 +40,13 @@ case class Row22(
   w: String
 )
 
+case class Row4(
+  a: Int,
+  b: String,
+  c: Int,
+  d: Float
+)
+
 class DslSpec extends FunSpec {
 
   import shapeless._
@@ -77,5 +84,22 @@ class DslSpec extends FunSpec {
 
   it("delete") {
     table.delete.where(eqOp('a)(1))
+  }
+
+  it("upsertOPs") {
+    val smallTable = Select.tableOf[Row4].name("test")
+
+    val ops = smallTable.upsertOps('a)
+
+    ops.insert(Row4(-1, "b",  42, 5f))
+    ops.update(Row4(1, "bb", 42, 5f))
+//    import shapeless._
+//    import shapeless.record._
+//    import shapeless.syntax.singleton._
+//
+//    var rec = 'a ->> 42 :: 'b ->> "sadas" :: 'c ->> false :: HNil
+//
+//    println(rec)
+//    println(rec.remove('b))
   }
 }

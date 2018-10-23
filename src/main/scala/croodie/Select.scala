@@ -1,5 +1,6 @@
 package croodie
 
+import doobie.free.connection.ConnectionIO
 import doobie.util.{Read, Write}
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param
@@ -7,7 +8,7 @@ import doobie.util.query.Query0
 import doobie.util.update.Update0
 import shapeless.labelled.FieldType
 import shapeless.ops.hlist.{SelectMany, Tupler}
-import shapeless.ops.record.{Fields, Keys, Selector, Values}
+import shapeless.ops.record._
 import shapeless.{HList, HNil, LabelledGeneric, ProductArgs, Witness}
 import shapeless._
 
@@ -77,6 +78,46 @@ object SelectionInfer extends LowPrioSelection {
   }
 }
 
+class UpsertOps[Orig, H <: HList, Id](
+  tableName: String,
+  idC: String,
+  otherFields: List[String],
+  from: Orig => (Id, H),
+  to: (Id, Orig) => Orig,
+  p1: Param[H],
+  p2: Param[Id],
+  r2: Read[Id]
+) {
+
+  def insertFr(in: H): Fragment = {
+    val fStr = otherFields.mkString("(", ",", ")")
+    val paramsStr = otherFields.map(_ => "?").mkString("(", ",", ")")
+    val sql = s"INSERT INTO $tableName $fStr VALUES $paramsStr"
+    Fragment[H](sql, in, None)(p1.write)
+  }
+
+  def insert(r: Orig): ConnectionIO[Orig] = {
+    val (_, values) = from(r)
+    val fr = insertFr(values)
+    fr.update.withUniqueGeneratedKeys[Id](idC)(r2).map(id => to(id, r))
+  }
+
+  def updateFr(in: H, id: Id): Fragment = {
+    val fields = otherFields.map(f => s"$f = ?").mkString("(", ",", ")")
+    val sql1 = s"UPDATE $tableName SET $fields"
+    val fr1 = Fragment[H](sql1, in, None)(p1.write)
+    val sql2 = s" WHERE $idC = ?"
+    val fr2 = Fragment[Id](sql2, id, None)(p2.write)
+    fr1 ++ fr2
+  }
+
+  def update(r: Orig) = {
+    val (id, values) = from(r)
+    val fr = updateFr(values, id)
+    fr.update.run.map(_ => r)
+  }
+}
+
 
 object Select {
 
@@ -94,6 +135,40 @@ object Select {
         new Where(fr, name, wi.in(expr), wi.expr)
       }
     }
+
+    def upsertOps[All <: HList, H <: HList, K, V, Out1 <: HList, Z <: HList](id: Witness)(
+      implicit
+      labGen: LabelledGeneric.Aux[Orig, All],
+      remover: Remover.Aux[All, id.T, (V, Out1)],
+      values: Values.Aux[Out1, H],
+      updater: Updater.Aux[All, FieldType[id.T, V], Z],
+      ev: id.T <:< Symbol,
+      names: FieldNames[F],
+      param1: Param[H],
+      param2: Param[V],
+      read: Read[V]
+
+    ): UpsertOps[Orig, H, V] = {
+      val all = names()
+      val idField = id.value.name
+      val otherFields = all.filter(_ != idField)
+
+      val from = (r: Orig) => {
+        val rec = labGen.to(r)
+        val (idKv, otherKv) = remover(rec)
+        val id = idKv.asInstanceOf[V]
+        val other = values(otherKv)
+        (id , other)
+      }
+      val to = (idx: V, o: Orig) => {
+        val rec = labGen.to(o)
+        val upd = updater(rec, idx.asInstanceOf[FieldType[id.T, V]])
+        labGen.from(upd.asInstanceOf[All])
+
+      }
+      new UpsertOps(name, idField, otherFields, from, to, param1, param2, read)
+    }
+
   }
 
   object tableOf {

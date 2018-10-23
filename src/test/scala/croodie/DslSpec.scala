@@ -46,6 +46,7 @@ class DslSpec extends FunSpec {
   import syntax.singleton._
 
   import shapeless.test._
+  import cmp._
 
   val table = Select.tableOf[Row22].name("test")
 
@@ -61,7 +62,6 @@ class DslSpec extends FunSpec {
   }
 
   it("where") {
-    import cmp._
 
     table.select('*.narrow).where(eqOp('a)(1))
     table.select('*.narrow).where(lessOp('a)(1))
@@ -73,5 +73,9 @@ class DslSpec extends FunSpec {
     table.select('*.narrow).where(And(greaterOp('a)(10), lessOp('a)(20)))
 
     table.select('*.narrow).where(And(greaterOp('a)(10), eqOp('w)("WWW")))
+  }
+
+  it("delete") {
+    table.delete.where(eqOp('a)(1))
   }
 }

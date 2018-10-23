@@ -49,8 +49,8 @@ class Test extends FunSpec {
     val table = Select.tableOf[Row].name("test")
 
     val selectStar = table.select('*.narrow)
-
     println(selectStar.query.to[List].transact(xa).unsafeRunSync())
+
     val selectFields = table.select('b.narrow)
     println(selectFields.query.to[List].transact(xa).unsafeRunSync())
 
@@ -60,6 +60,11 @@ class Test extends FunSpec {
     // fd('a) == 1 and fd('b)
 //    val selectWhere = table.select('*.narrow).where(eqOp('a)(1))
     println(selectWhere.query.to[List].transact(xa).unsafeRunSync())
+
+    val delete = table.delete.where(eqOp('a)(1))
+    println(delete.update.run.transact(xa).unsafeRunSync())
+
+    println(selectStar.query.to[List].transact(xa).unsafeRunSync())
   }
 //
   it("join") {

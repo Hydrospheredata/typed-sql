@@ -27,7 +27,7 @@ case class Select[F <: HList, R](
   }
 
   def where[E <: ExprTree, O](expr: E)(implicit wi: WhereInfer.Aux[F, E, O]): Where[F, R, O] = {
-    new Where(self, wi.in(expr), wi.expr)
+    new Where(fr, tableName, wi.in(expr), wi.expr)
   }
 
   def query(implicit read: Read[R]): Query0[R] = fr.query[R](read)
@@ -86,6 +86,13 @@ object Select {
     object select extends ProductArgs {
       def applyProduct[Q, O](q: Q)(implicit inf: SelectionInfer.Aux[F, Q, O]): Select[F, O] =
         new Select(name, inf.fields())
+    }
+
+    object delete {
+      def where[E <: ExprTree, O](expr: E)(implicit wi: WhereInfer.Aux[F, E, O]): Where[F, Int, O] = {
+        val fr = Fragment[HNil](s"DELETE FROM $name", HNil, None)(Param.ParamHNil.write)
+        new Where(fr, name, wi.in(expr), wi.expr)
+      }
     }
   }
 

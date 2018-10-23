@@ -4,6 +4,7 @@ import doobie.util.Read
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param
 import doobie.util.query.Query0
+import doobie.util.update.Update0
 import shapeless._
 import shapeless.ops.record.Selector
 
@@ -34,18 +35,21 @@ object LowExpr {
 }
 
 class Where[F <: HList, R, In](
-  select: Select[F, R],
+//  select: Select[F, R],
+  parentFr: Fragment,
+  tableName: String,
   in: In,
   expr: LowExpr
 ) {
 
   def fr(p: Param[In]): Fragment = {
-    val sql = " WHERE " + expr.render(select.tableName)
+    val sql = " WHERE " + expr.render(tableName)
     val whereFr = Fragment[In](sql, in, None)(p.write)
-    select.fr ++ whereFr
+    parentFr ++ whereFr
   }
 
   def query(implicit p: Param[In], read: Read[R]): Query0[R] = fr(p).query[R](read)
+  def update(implicit p: Param[In]): Update0 = fr(p).update
 
 }
 

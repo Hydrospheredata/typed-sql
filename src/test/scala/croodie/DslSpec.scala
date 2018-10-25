@@ -92,6 +92,8 @@ class DslSpec extends FunSpec {
 
     ops.insert(Row4(-1, "b",  42, 5f))
     ops.update(Row4(1, "bb", 42, 5f))
+
+    val x = table.upsertOps('a)
 //    import shapeless._
 //    import shapeless.record._
 //    import shapeless.syntax.singleton._

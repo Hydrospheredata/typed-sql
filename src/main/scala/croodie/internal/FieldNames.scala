@@ -1,8 +1,7 @@
-package croodie
+package croodie.internal
 
 import shapeless.labelled.FieldType
-import shapeless._
-import shapeless.{HList, HNil, Poly1, Witness}
+import shapeless.{HList, HNil, Witness, _}
 
 trait FieldNames[A <: HList] {
   def apply(): List[String]

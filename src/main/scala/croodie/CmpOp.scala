@@ -1,5 +1,6 @@
 package croodie
 
+import croodie.internal.Join
 import doobie.util.Read
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param

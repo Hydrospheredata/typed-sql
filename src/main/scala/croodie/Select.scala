@@ -1,5 +1,6 @@
 package croodie
 
+import croodie.internal.FieldNames
 import doobie.free.connection.ConnectionIO
 import doobie.util.{Read, Write}
 import doobie.util.fragment.Fragment
@@ -11,11 +12,6 @@ import shapeless.ops.hlist.{SelectMany, Tupler}
 import shapeless.ops.record._
 import shapeless.{HList, HNil, LabelledGeneric, ProductArgs, Witness}
 import shapeless._
-
-sealed trait Expr[Out] {
-  def fr: Fragment
-}
-
 
 case class Select[F <: HList, R](
   tableName: String,

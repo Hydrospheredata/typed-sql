@@ -1,8 +1,7 @@
-package croodie
+package croodie.internal
 
 import shapeless._
 import shapeless.ops.adjoin.Adjoin
-import shapeless.ops.tuple.Prepend
 
 trait Join[A, B] {
   type Out <: HList

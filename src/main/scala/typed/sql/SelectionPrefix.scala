@@ -8,7 +8,7 @@ case class SelectionPrefix[A](query: A) {
   def from[S, Repr1 <: HList, O](t: Table.Aux[S, Repr1])(
     implicit
     selInfer: SelectInfer.Aux[S, Repr1, A, O]
-  ): Selection.Aux[S, O, Repr1, HNil, Selection.WithoutWhere.type] = {
+  ): Selection[S, O] { type Repr = Repr1; type In = HNil; type WhereFlag = Selection.WithoutWhere.type } = {
     new Selection[S, O] {
       type Repr = Repr1
 

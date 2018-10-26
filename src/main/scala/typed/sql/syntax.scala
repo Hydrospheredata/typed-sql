@@ -14,13 +14,13 @@ object syntax extends ColumnSyntax {
 
   val `*` = All
 
-  implicit class WhereSyntax[S, R, Repr1 <: HList, In1 <: HList](
-    selection: Selection.Aux[S, R, Repr1, In1, Selection.WithoutWhere.type]
-  ) {
+  implicit class WhereSyntax[S, R, Repr1 <: HList, In1 <: HList, WF1 <: Selection.HasWhere](
+    selection: Selection[S, R] {type Repr = Repr1; type In = In1; type WhereFlag = WF1}
+  )(implicit ev: WF1 =:= Selection.WithoutWhere.type ) {
 
     def where[C <: WhereClause, Out <: HList](clause: C)(
-      implicit whereInfer: WhereInfer.Aux[Repr1, C, Out]
-    ): Selection[S, R] = {
+      implicit whereInfer: WhereInfer.Aux[selection.Repr, C, Out]
+    ): Selection[S, R] { type Repr = Repr1; type In = Out; type WhereFlag = Selection.WhereDefined.type } = {
       new Selection[S, R] {
 
         type Repr = Repr1
@@ -43,5 +43,12 @@ object syntax extends ColumnSyntax {
         val in: In = whereInfer.in(clause)
       }
     }
+  }
+
+  implicit class JoinSyntax[S, R, Repr1 <: HList, In1 <: HList, WF1 <: Selection.HasWhere](
+    selection: Selection[S, R] {type Repr = Repr1; type In = In1; type WhereFlag = WF1}
+  ) {
+
+    def innerJoin[B, Repr2](t: Table.Aux[B, Repr2]):
   }
 }

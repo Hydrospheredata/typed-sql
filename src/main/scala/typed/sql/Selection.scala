@@ -25,11 +25,6 @@ object Selection {
   case object WhereDefined extends HasWhere
   case object WithoutWhere extends HasWhere
 
-  type Aux[Shape, R, Repr0 <: HList, In0, WhereFlag0] = Selection[Shape, R] {
-    type Repr = Repr0
-    type In = In0
-    type WhereFlag = WhereFlag0
-  }
 }
 
 

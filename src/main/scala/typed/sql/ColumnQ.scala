@@ -19,7 +19,6 @@ case class Column[K, V] private[sql](k: K) extends ColumnQuery {
 trait ColumnSyntax {
 
   implicit class CmpOpChain[A <: WhereClause](a: A) {
-
     def and[B <: WhereClause](b: B): And[A, B] = And(a, b)
     def or[B <: WhereClause](b: B): Or[A, B] = Or(a, b)
   }

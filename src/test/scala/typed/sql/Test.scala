@@ -28,9 +28,9 @@ class Test extends FunSpec {
     println(aOnly.sql)
 
     val withWhere = {
-      select(*).from(table).where(
-        (a ==== 1) and (b like "abc%")
-      )
+      select(*)
+        .from(table)
+        .where((a ==== 1) and (b like "abc%"))
     }
 
     println(withWhere.sql)

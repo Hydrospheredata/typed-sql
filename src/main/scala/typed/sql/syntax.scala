@@ -1,10 +1,7 @@
 package typed.sql
 
-import shapeless.LabelledGeneric.Aux
-import shapeless.{HList, HNil, LabelledGeneric, ProductArgs, Witness}
-import typed.sql.Selection.HasWhere
-import typed.sql.internal.{SelectInfer, WhereInfer}
-
+import shapeless.{HList, LabelledGeneric, ProductArgs}
+import typed.sql.internal.WhereInfer
 
 object syntax extends ColumnSyntax {
 
@@ -45,10 +42,4 @@ object syntax extends ColumnSyntax {
     }
   }
 
-  implicit class JoinSyntax[S, R, Repr1 <: HList, In1 <: HList, WF1 <: Selection.HasWhere](
-    selection: Selection[S, R] {type Repr = Repr1; type In = In1; type WhereFlag = WF1}
-  ) {
-
-    def innerJoin[B, Repr2](t: Table.Aux[B, Repr2]):
-  }
 }

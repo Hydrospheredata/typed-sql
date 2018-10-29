@@ -4,6 +4,7 @@ organization := "io.hydrosphere"
 name := "typed-sql"
 version := "0.0.1"
 
+scalacOptions += "-Ypartial-unification"
 libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.3",
   "org.tpolecat" %% "doobie-core"      % "0.6.0",

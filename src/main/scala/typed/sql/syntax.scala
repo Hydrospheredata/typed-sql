@@ -1,7 +1,7 @@
 package typed.sql
 
 import shapeless._
-import typed.sql.internal.WhereInfer2
+import typed.sql.internal.WhereInfer
 import typed.sql.prefixes._
 
 object syntax extends ColumnSyntax {
@@ -14,7 +14,7 @@ object syntax extends ColumnSyntax {
 
   implicit class WhereSyntax[S <: FSH, O](selection: Selection[S, O, HNil]) {
 
-    def where[C <: WhereClause, In0 <: HList](c: C)(implicit inf: WhereInfer2.Aux[S, C, In0]): Selection[S, O, In0] =
+    def where[C <: WhereClause, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Selection[S, O, In0] =
       new Selection[S, O, In0] {
         type WhereFlag = Selection.WhereDefined.type
         def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))

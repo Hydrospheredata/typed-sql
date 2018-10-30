@@ -1,6 +1,7 @@
 package typed.sql.internal
 
 import shapeless._
+import shapeless.ops.record.Selector
 import typed.sql._
 
 import scala.annotation.implicitNotFound
@@ -156,27 +157,190 @@ object FSHOps {
     }
   }
 
-  trait FromInfer[A <: FSH, Q] {
+  trait SelectField[A <: FSH, K] {
+    type Out
+  }
+
+  object SelectField {
+    type Aux[A <: FSH, K, Out0] = SelectField[A, K] { type Out = Out0 }
+
+    implicit def from[a, n, R <: HList, K, V](
+      implicit
+      sel: Selector.Aux[R, K, V]
+    ): Aux[From[TRepr[a, n, R]], K, V] = null
+
+    implicit def ij1[a, n, R <: HList, K, V, c <: JoinCond, tail <: FSH](
+      implicit
+      sel: Selector.Aux[R, K, V]
+    ): Aux[IJ[TRepr[a, n, R], c, tail], K, V] = null
+
+    implicit def ij2[a, n, R <: HList, K, V, c <: JoinCond, TAIL <: FSH, O](
+      implicit
+      next: SelectField.Aux[TAIL, K, O]
+    ): Aux[IJ[TRepr[a, n, R], c, TAIL], K, O] = null
+
+    implicit def lj1[a, n, R <: HList, K, V, c <: JoinCond, tail <: FSH, O](
+      implicit
+      sel: Selector.Aux[R, K, V],
+      fl: FlattenOption.Aux[V, O]
+    ): Aux[LJ[TRepr[a, n, R], c, tail], K, O] = null
+
+    implicit def lj2[a, n, R <: HList, K, V, c <: JoinCond, TAIL <: FSH, O](
+      implicit
+      next: SelectField.Aux[TAIL, K, O]
+    ): Aux[LJ[TRepr[a, n, R], c, TAIL], K, O] = null
+
+    implicit def rj1[a, n, R <: HList, K, V, c <: JoinCond, tail <: FSH](
+      implicit
+      sel: Selector.Aux[R, K, V]
+    ): Aux[RJ[TRepr[a, n, R], c, tail], K, V] = null
+
+    implicit def rj2[a, n, R <: HList, K, V, c <: JoinCond, TAIL <: FSH, O, O2](
+      implicit
+      next: SelectField.Aux[TAIL, K, O],
+      fl: FlattenOption.Aux[O, O2]
+    ): Aux[RJ[TRepr[a, n, R], c, TAIL], K, O2] = null
+
+    implicit def fj1[a, n, R <: HList, K, V, c <: JoinCond, tail <: FSH, O](
+      implicit
+      sel: Selector.Aux[R, K, V],
+      fl: FlattenOption.Aux[V, O]
+    ): Aux[FJ[TRepr[a, n, R], c, tail], K, O] = null
+
+    implicit def fj2[a, n, R <: HList, K, V, c <: JoinCond, TAIL <: FSH, O](
+      implicit
+      next: SelectField.Aux[TAIL, K, O],
+      fl: FlattenOption.Aux[V, O]
+    ): Aux[FJ[TRepr[a, n, R], c, TAIL], K, O] = null
+  }
+
+
+  trait LowLevelSelectInfer[A <: FSH, Q] {
+    type Out <: HList
+    def cols: List[ast.Col]
+  }
+
+  object LowLevelSelectInfer {
+    type Aux[A <: FSH, Q, Out0] = LowLevelSelectInfer[A, Q] { type Out = Out0 }
+
+    implicit def hnil[A <: FSH]: Aux[A, HNil, HNil] = {
+      new LowLevelSelectInfer[A, HNil] {
+        type Out = HNil
+        def cols: List[ast.Col] = List.empty
+      }
+    }
+
+    implicit def hCons[A <: FSH, TName, K, v, T <: HList, O <: HList, X](
+      implicit
+      sel: SelectField.Aux[A, K, X],
+      next: LowLevelSelectInfer.Aux[A, T, O],
+      w1: Witness.Aux[TName],
+      ev1: TName <:< Symbol,
+      w2: Witness.Aux[K],
+      ev2: K <:< Symbol
+    ): Aux[A, Column2[K, v, TName] :: T, X :: O] = {
+      new LowLevelSelectInfer[A, Column2[K, v, TName] :: T] {
+        type Out = X :: O
+        def cols: List[ast.Col] = ast.Col(w1.value.name, w2.value.name) :: next.cols
+      }
+    }
+
+  }
+
+  trait FromInfer[A <: FSH] {
+    def mkAst(shape: A): ast.From
+  }
+  object FromInfer {
+
+    private def create[A <: FSH](f: A => ast.From): FromInfer[A] = new FromInfer[A] {
+      override def mkAst(shape: A): ast.From = f(shape)
+    }
+
+    implicit def from[a, N, r <: HList](
+      implicit
+      wt: Witness.Aux[N],
+      ev: N <:< Symbol
+    ): FromInfer[From[TRepr[a, N, r]]] = create(_ => ast.From(wt.value.name, List.empty))
+
+    implicit def ij[a, N, r <: HList, C <: JoinCond, TAIL <: FSH](
+      implicit
+      wt: Witness.Aux[N],
+      ev: N <:< Symbol,
+      cndInf: JoinCondInfer[C],
+      tInf: FromInfer[TAIL]
+    ): FromInfer[IJ[TRepr[a, N, r], C, TAIL]] = {
+
+      create(a => {
+        val x = tInf.mkAst(a.tail)
+        val j = ast.InnerJoin(wt.value.name, cndInf.mkAst())
+        ast.From(x.table, x.joins :+ j)
+      })
+    }
+
+    implicit def lj[a, N, r <: HList, C <: JoinCond, TAIL <: FSH](
+      implicit
+      wt: Witness.Aux[N],
+      ev: N <:< Symbol,
+      cndInf: JoinCondInfer[C],
+      tInf: FromInfer[TAIL]
+    ): FromInfer[LJ[TRepr[a, N, r], C, TAIL]] = {
+
+      create(a => {
+        val x = tInf.mkAst(a.tail)
+        val j = ast.LeftJoin(wt.value.name, cndInf.mkAst())
+        ast.From(x.table, x.joins :+ j)
+      })
+    }
+
+    implicit def rj[a, N, r <: HList, C <: JoinCond, TAIL <: FSH](
+      implicit
+      wt: Witness.Aux[N],
+      ev: N <:< Symbol,
+      cndInf: JoinCondInfer[C],
+      tInf: FromInfer[TAIL]
+    ): FromInfer[RJ[TRepr[a, N, r], C, TAIL]] = {
+
+      create(a => {
+        val x = tInf.mkAst(a.tail)
+        val j = ast.RightJoin(wt.value.name, cndInf.mkAst())
+        ast.From(x.table, x.joins :+ j)
+      })
+    }
+
+    implicit def fj[a, N, r <: HList, C <: JoinCond, TAIL <: FSH](
+      implicit
+      wt: Witness.Aux[N],
+      ev: N <:< Symbol,
+      cndInf: JoinCondInfer[C],
+      tInf: FromInfer[TAIL]
+    ): FromInfer[FJ[TRepr[a, N, r], C, TAIL]] = {
+
+      create(a => {
+        val x = tInf.mkAst(a.tail)
+        val j = ast.FullJoin(wt.value.name, cndInf.mkAst())
+        ast.From(x.table, x.joins :+ j)
+      })
+    }
+
+  }
+
+
+  trait FromInferForStarSelect[A <: FSH] {
     type Out
     def mkAst(shape: A): ast.From
   }
 
 
-  trait LowPrioFromInfer {
-
-    type Aux[A <: FSH, Q, Out0] = FromInfer[A, Q] { type Out = Out0 }
-
-  }
-
   //TODO: flatten tuples?
-  object FromInfer extends LowPrioFromInfer {
+  object FromInferForStarSelect {
+    type Aux[A <: FSH,  Out0] = FromInferForStarSelect[A]  { type Out = Out0 }
 
     implicit def starFrom[A, N, r <: HList](
       implicit
       wt: Witness.Aux[N],
       ev: N <:< Symbol
-    ):Aux[From[TRepr[A, N, r]], All.type :: HNil, A] = {
-      new FromInfer[From[TRepr[A, N, r]], All.type :: HNil] {
+    ):Aux[From[TRepr[A, N, r]], A] = {
+      new FromInferForStarSelect[From[TRepr[A, N, r]]] {
         type Out = A
         def mkAst(shape: From[TRepr[A, N, r]]): ast.From = ast.From(wt.value.name, List.empty)
       }
@@ -187,9 +351,9 @@ object FSHOps {
       wt: Witness.Aux[N],
       ev: N <:< Symbol,
       cndInf: JoinCondInfer[C],
-      tInf: FromInfer.Aux[tail, All.type :: HNil, O1]
-    ):Aux[IJ[TRepr[A, N, r], C, tail], All.type :: HNil, (O1, A)] = {
-      new FromInfer[IJ[TRepr[A, N, r], C, tail], All.type :: HNil] {
+      tInf: FromInferForStarSelect.Aux[tail, O1]
+    ):Aux[IJ[TRepr[A, N, r], C, tail], (O1, A)] = {
+      new FromInferForStarSelect[IJ[TRepr[A, N, r], C, tail]] {
         type Out = (O1, A)
         def mkAst(shape: IJ[TRepr[A, N, r], C, tail]): ast.From = {
           val x = tInf.mkAst(shape.tail)
@@ -199,15 +363,16 @@ object FSHOps {
       }
     }
 
-    implicit def starLJ[A, N, r <: HList, A2, N2, r2 <: HList, C <: JoinCond, tail <: FSH, O1](
+    implicit def starLJ[A, N, r <: HList, A2, N2, r2 <: HList, C <: JoinCond, tail <: FSH, O1, O2](
       implicit
       wt: Witness.Aux[N],
       ev: N <:< Symbol,
       cndInf: JoinCondInfer[C],
-      tInf: FromInfer.Aux[tail, All.type :: HNil, O1]
-    ):Aux[LJ[TRepr[A, N, r], C, tail], All.type :: HNil, (O1, Option[A])] = {
-      new FromInfer[LJ[TRepr[A, N, r], C, tail], All.type :: HNil] {
-        type Out = (O1, Option[A])
+      tInf: FromInferForStarSelect.Aux[tail, O1],
+      flTuple: FlattenTuple.Aux[O1, Option[A], O2]
+    ):Aux[LJ[TRepr[A, N, r], C, tail], O2] = {
+      new FromInferForStarSelect[LJ[TRepr[A, N, r], C, tail]] {
+        type Out = O2
         def mkAst(shape: LJ[TRepr[A, N, r], C, tail]): ast.From = {
           val x = tInf.mkAst(shape.tail)
           val j = ast.LeftJoin(wt.value.name, cndInf.mkAst())
@@ -221,9 +386,9 @@ object FSHOps {
       wt: Witness.Aux[N],
       ev: N <:< Symbol,
       cndInf: JoinCondInfer[C],
-      tInf: FromInfer.Aux[tail, All.type :: HNil, O1]
-    ):Aux[RJ[TRepr[A, N, r], C, tail], All.type :: HNil, (Option[O1], A)] = {
-      new FromInfer[RJ[TRepr[A, N, r], C, tail], All.type :: HNil] {
+      tInf: FromInferForStarSelect.Aux[tail, O1]
+    ):Aux[RJ[TRepr[A, N, r], C, tail], (Option[O1], A)] = {
+      new FromInferForStarSelect[RJ[TRepr[A, N, r], C, tail]] {
         type Out = (Option[O1], A)
         def mkAst(shape: RJ[TRepr[A, N, r], C, tail]): ast.From = {
           val x = tInf.mkAst(shape.tail)
@@ -238,13 +403,13 @@ object FSHOps {
       wt: Witness.Aux[N],
       ev: N <:< Symbol,
       cndInf: JoinCondInfer[C],
-      tInf: FromInfer.Aux[tail, All.type :: HNil, O1]
-    ):Aux[FJ[TRepr[A, N, r], C, tail], All.type :: HNil, (Option[O1], Option[A])] = {
-      new FromInfer[FJ[TRepr[A, N, r], C, tail], All.type :: HNil] {
+      tInf: FromInferForStarSelect.Aux[tail, O1]
+    ):Aux[FJ[TRepr[A, N, r], C, tail], (Option[O1], Option[A])] = {
+      new FromInferForStarSelect[FJ[TRepr[A, N, r], C, tail]] {
         type Out = (Option[O1], Option[A])
         def mkAst(shape: FJ[TRepr[A, N, r], C, tail]): ast.From = {
           val x = tInf.mkAst(shape.tail)
-          val j = ast.RightJoin(wt.value.name, cndInf.mkAst())
+          val j = ast.FullJoin(wt.value.name, cndInf.mkAst())
           ast.From(x.table, x.joins :+ j)
         }
       }

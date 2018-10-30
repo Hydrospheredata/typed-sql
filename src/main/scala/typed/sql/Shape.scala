@@ -5,6 +5,10 @@ import shapeless.{HList, LabelledGeneric}
 sealed trait TR
 final case class TRepr[S, N, R <: HList](lGen: LabelledGeneric.Aux[S, R]) extends TR
 
+/**
+  * FROM Table shape.
+  * Describes plain tables|joins
+  */
 sealed trait FSH
 final case class From[A <: TR](repr: A) extends FSH
 sealed trait FSHJ[H <: TR, Cond <: JoinCond, T <: FSH] extends FSH {

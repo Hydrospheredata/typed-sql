@@ -42,13 +42,13 @@ class Test extends FunSpec {
 
   it("select *") {
     val x1 = select(*).from(table1)
-    println(x1)
+    println(x1.astData)
 
     val x2 = select(*).from(joined1)
-    println(x2)
+    println(x2.astData)
 
     val x3 = select(*).from(table1.fullJoin(table2).on(a1 <==> first2))
-    println(x3)
+    println(x3.astData)
   }
 
   it("joins") {

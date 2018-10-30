@@ -165,6 +165,7 @@ object FSHOps {
   trait LowPrioFromInfer {
 
     type Aux[A <: FSH, Q, Out0] = FromInfer[A, Q] { type Out = Out0 }
+
   }
 
   //TODO: flatten tuples?
@@ -249,5 +250,6 @@ object FSHOps {
       }
     }
   }
+
 
 }

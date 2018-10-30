@@ -4,13 +4,13 @@ object ast {
 
   case class Col(table: String, name: String)
 
-  sealed trait JoinCond
+  sealed trait JoinCond extends Product with Serializable
   final case class JoinCondEq(col1: Col, col2: Col) extends JoinCond
   final case class JoinCondAnd(c1: JoinCond, c2: JoinCond) extends JoinCond
   final case class JoinCondOr(c1: JoinCond, c2: JoinCond) extends JoinCond
 
 
-  sealed trait Join {
+  sealed trait Join extends Product with Serializable {
     def table: String
     def cond: JoinCond
   }

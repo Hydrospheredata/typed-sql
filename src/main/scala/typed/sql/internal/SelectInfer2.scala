@@ -2,7 +2,7 @@ package typed.sql.internal
 
 import shapeless._
 import typed.sql.internal.FSHOps.FromInfer
-import typed.sql.{All, FSH, ast}
+import typed.sql._
 
 //trait SelectInfer2[From, Q] {
 //  type Out
@@ -36,6 +36,7 @@ trait SelectInfer2[A <: FSH, Q] {
 
 trait LowPrioSelectInfer2 {
   type Aux[A <: FSH, Q, Out0] = SelectInfer2[A, Q] { type Out = Out0 }
+
 }
 
 object SelectInfer2 extends LowPrioSelectInfer2 {
@@ -43,11 +44,11 @@ object SelectInfer2 extends LowPrioSelectInfer2 {
   implicit def forStar[A <: FSH, O](
     implicit
     allC: FSHOps.AllColumns[A],
-    fromInf: FromInfer[A, All.type :: HNil]
-  ): Aux[A, All.type :: HNil, HNil] = {
+    fromInf: FromInfer.Aux[A, All.type :: HNil, O]
+  ): Aux[A, All.type :: HNil, O] = {
     new SelectInfer2[A, All.type :: HNil] {
-      type Out = HNil
-      def mkAst(shape: A): ast.Select[HNil] = {
+      type Out = O
+      def mkAst(shape: A): ast.Select[O] = {
         ast.Select(allC.columns, fromInf.mkAst(shape))
       }
     }

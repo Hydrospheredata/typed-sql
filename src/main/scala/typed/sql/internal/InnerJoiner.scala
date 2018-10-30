@@ -3,14 +3,14 @@ package typed.sql.internal
 import shapeless.HList
 import typed.sql._
 
-trait ShapeJoin[A <: SHead, B <: TableRepr[_, _, _], Q <: JoinCond] {
+trait InnerJoiner[A <: SHead, B <: TableRepr[_, _, _], Q <: JoinCond] {
   type Out <: SHead
   def innerJoin(a: A, b: B, q: Q): Out
 }
 
-object ShapeJoin {
+object InnerJoiner {
 
-  type Aux[A <: SHead, B <: TableRepr[_, _, _], Q <: JoinCond, Out0] = ShapeJoin[A, B, Q] { type Out = Out0 }
+  type Aux[A <: SHead, B <: TableRepr[_, _, _], Q <: JoinCond, Out0] = InnerJoiner[A, B, Q] { type Out = Out0 }
 
   trait IsFieldOf[A <: TableRepr[_, _, _], C <: Column2[_, _, _]]
   object IsFieldOf {
@@ -30,14 +30,35 @@ object ShapeJoin {
     ): IsCorrectCond[TableRepr[A1, N1, R1], TableRepr[A2, N2, R2], JoinCond.Eq[K1, V, NN1, K2, NN2]] = null
   }
 
-  implicit def last[A <: TableRepr[_, _, _], B <: TableRepr[_, _, _], Q <: JoinCond, CX <: JoinCond](
+  implicit def last[A <: TableRepr[_, _, _], B <: TableRepr[_, _, _], Q <: JoinCond](
     implicit
     isCorrectCond: IsCorrectCond[A, B, Q]
   ): Aux[SHNrm[A, JoinCond.NoCond, SE], B, Q, SHNrm[A, Q, SHNrm[B, JoinCond.NoCond, SE]]] = {
-    new ShapeJoin[SHNrm[A, JoinCond.NoCond, SE], B, Q] {
+    new InnerJoiner[SHNrm[A, JoinCond.NoCond, SE], B, Q] {
       type Out = SHNrm[A, Q, SHNrm[B, JoinCond.NoCond, SE]]
       def innerJoin(a: SHNrm[A, JoinCond.NoCond, SE], b: B, q: Q): SHNrm[A, Q, SHNrm[B, JoinCond.NoCond, SE]] = {
         SHNrm(a.h, q, SHNrm(b, JoinCond.NoCond, SE))
+      }
+    }
+  }
+
+  implicit def shNRM[
+    A <: TableRepr[_, _, _],
+    D <: SHead,
+    B <: TableRepr[_, _, _],
+    Q  <: JoinCond,
+    AQ <: JoinCond,
+    NRO <: SHead,
+    NOO <: SHead
+  ](
+    implicit
+    isCorrectCond: IsCorrectCond[A, B, Q],
+    append: ShapeOps.Append.Aux[SHNrm[A, AQ, D], B, Q, NRO, NOO]
+  ): Aux[SHNrm[A, AQ, D], B, Q, NRO] = {
+    new InnerJoiner[SHNrm[A, AQ, D], B, Q] {
+      type Out = NRO
+      def innerJoin(a: SHNrm[A, AQ, D], b: B, q: Q): NRO = {
+        append.appNrm(a, q, b)
       }
     }
   }

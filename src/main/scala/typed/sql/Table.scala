@@ -10,7 +10,7 @@ sealed trait SE extends Shape
 case object SE extends SE
 
 sealed trait SHead extends Shape
-final case class SHOpt[H <: TableRepr[_, _, _], C <: JoinCond, T <: Shape](h: H, t: T) extends SHead
+final case class SHOpt[H <: TableRepr[_, _, _], C <: JoinCond, T <: Shape](h: H, cnd: C, t: T) extends SHead
 final case class SHNrm[H <: TableRepr[_, _, _], C <: JoinCond, T <: Shape](h: H, cnd: C, t: T) extends SHead
 
 final case class TableRepr[S, N, R <: HList](
@@ -47,14 +47,7 @@ object Table3{
         fieldNames: FieldNames[H]
       ): Table3[A, k.T, H] = {
         val repr = TableRepr[A, k.T, H](labGen)
-        //Table3[A, k.T, H](repr, SHNrm(repr, JoinCond.NoCond, SE), k.value)
         Table3(repr, SHNrm(repr, JoinCond.NoCond, SE), k.value)
-
-//        new TableRepr[A, k.T, H] {
-//          val nameT = k.value
-//          val name: String = k.value.name
-//          val columns: List[String] = fieldNames()
-//        }
       }
     }
   }

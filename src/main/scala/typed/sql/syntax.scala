@@ -2,6 +2,7 @@ package typed.sql
 
 import shapeless.{HList, LabelledGeneric, ProductArgs}
 import typed.sql.internal.WhereInfer
+import typed.sql.prefixes.InnerJoinPrefix
 
 object syntax extends ColumnSyntax {
 
@@ -40,6 +41,12 @@ object syntax extends ColumnSyntax {
         val in: In = whereInfer.in(clause)
       }
     }
+  }
+
+  implicit class JoinSyntax[S <: SHead](shape: S) {
+
+    def innerJoin[S2, N2, R2 <: HList](t: Table3[S2, N2, R2]): InnerJoinPrefix[S, TableRepr[S2, N2, R2]] =
+      new InnerJoinPrefix(shape, t.repr)
   }
 
 }

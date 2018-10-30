@@ -1,6 +1,6 @@
-package croodie
+package poc
 
-import croodie.internal.FieldNames
+import poc.internal.FieldNames
 import doobie.free.connection.ConnectionIO
 import doobie.util.{Read, Write}
 import doobie.util.fragment.Fragment

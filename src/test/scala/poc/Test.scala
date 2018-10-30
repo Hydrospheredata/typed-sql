@@ -1,4 +1,4 @@
-package croodie
+package poc
 
 import cats.effect.{Async, ContextShift, IO}
 import org.scalatest.FunSpec

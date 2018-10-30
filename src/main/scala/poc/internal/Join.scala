@@ -1,4 +1,4 @@
-package croodie.internal
+package poc.internal
 
 import shapeless._
 import shapeless.ops.adjoin.Adjoin

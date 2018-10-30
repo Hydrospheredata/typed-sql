@@ -1,4 +1,4 @@
-package croodie.internal
+package poc.internal
 
 import shapeless.labelled.FieldType
 import shapeless.{HList, HNil, Witness, _}

@@ -1,4 +1,4 @@
-package croodie
+package poc
 
 import org.scalatest.FunSpec
 

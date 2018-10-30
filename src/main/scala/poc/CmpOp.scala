@@ -1,6 +1,6 @@
-package croodie
+package poc
 
-import croodie.internal.Join
+import poc.internal.Join
 import doobie.util.Read
 import doobie.util.fragment.Fragment
 import doobie.util.param.Param

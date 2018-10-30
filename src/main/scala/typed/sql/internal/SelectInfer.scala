@@ -1,44 +1,48 @@
 package typed.sql.internal
 
 import shapeless._
-import shapeless.ops.record.Selector
-import typed.sql.{All, Column, Table}
+import shapeless.ops.hlist.Tupler
+import typed.sql.internal.FSHOps.{FromInfer, FromInferForStarSelect, LowLevelSelectInfer}
+import typed.sql._
 
-//trait SelectInfer[S, R <: HList, Q] {
-//  type Out
-//  def fields(t: Table.Aux[S, R]): List[String]
-//}
-//trait LowPrioSelectInfer {
-//
-//  type Aux[S, R <: HList, Q, Out0] = SelectInfer[S, R, Q] { type Out = Out0 }
-//
-//  implicit def hnil[S, R <: HList]: Aux[S, R, HNil, HNil] = new SelectInfer[S, R, HNil]{
-//    type Out = HNil
-//    def fields(t: Table.Aux[S, R]): List[String] = List.empty
-//  }
-//
-//  implicit def hCons[S, R <: HList, K, V, T <: HList, NOut <: HList](
-//    implicit
-//    selector: Selector.Aux[R, K, V],
-//    wt: Witness.Aux[K],
-//    ev: K <:< Symbol,
-//    next: SelectInfer.Aux[S, R, T, NOut]
-//  ): Aux[S, R, Column[K, V] :: T, V :: NOut] = {
-//    new SelectInfer[S, R, Column[K, V] :: T] {
-//      type Out = V :: NOut
-//      def fields(t: Table.Aux[S, R]): List[String] = wt.value.name :: next.fields(t)
-//    }
-//  }
-//
-//}
-//
-//object SelectInfer extends LowPrioSelectInfer {
-//
-//  implicit def forStar[S, R <: HList, O <: HList]: Aux[S, R, All.type :: HNil, S] = {
-//    new SelectInfer[S, R, All.type :: HNil] {
-//      type Out = S
-//      def fields(t: Table.Aux[S, R]): List[String] = t.columns
-//    }
-//  }
-//}
+import scala.annotation.implicitNotFound
 
+@implicitNotFound("Couldn't infer selection:\n  Given: ${A},\n  Query: ${Q}.")
+trait SelectInfer[A <: FSH, Q] {
+  type Out
+  def mkAst(shape: A): ast.Select[Out]
+}
+
+trait LowPrioSelectInfer {
+  @implicitNotFound("Couldn't infer selection\n  Given: ${A},\n  Query: ${Q}.")
+  type Aux[A <: FSH, Q, Out0] = SelectInfer[A, Q] { type Out = Out0 }
+
+  implicit def columns[A <: FSH, H <: HList, O <: HList](
+    implicit
+    llsi: LowLevelSelectInfer.Aux[A, H, O],
+    fInf: FromInfer[A]
+  ): Aux[A, H, O] = {
+    new SelectInfer[A, H] {
+      type Out = O
+      override def mkAst(shape: A): ast.Select[O] = {
+        ast.Select(llsi.cols, fInf.mkAst(shape))
+      }
+    }
+  }
+}
+
+object SelectInfer extends LowPrioSelectInfer {
+
+  implicit def forStar[A <: FSH, O](
+    implicit
+    allC: FSHOps.AllColumns[A],
+    fromInf: FromInferForStarSelect.Aux[A, O]
+  ): Aux[A, All.type :: HNil, O] = {
+    new SelectInfer[A, All.type :: HNil] {
+      type Out = O
+      def mkAst(shape: A): ast.Select[O] = {
+        ast.Select(allC.columns, fromInf.mkAst(shape))
+      }
+    }
+  }
+}

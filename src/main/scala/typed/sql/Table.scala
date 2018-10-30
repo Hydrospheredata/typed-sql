@@ -1,6 +1,6 @@
 package typed.sql
 
-import croodie.internal.FieldNames
+import poc.internal.FieldNames
 import shapeless._
 import shapeless.ops.record.Selector
 import typed.sql.prefixes._

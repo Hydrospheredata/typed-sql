@@ -1,6 +1,8 @@
 package typed.sql
 
 import org.scalatest.FunSpec
+import shapeless.test.illTyped
+import typed.sql.internal.FSHOps.{CanJoin, IsFieldOf}
 
 case class TestRow(
   a: Int,
@@ -32,32 +34,25 @@ class Test extends FunSpec {
   val first2 = table2.col('first)
   val x3 = table3.col('x)
 
-  it("joins") {
+  val joined1 = table1 innerJoin table2 on a1 <==> first2
 
-    val joined1 = table1 innerJoin table2 on a1 <==> first2
+  val joined2 = table1
+    .innerJoin(table2).on(a1 <==> first2)
+    .innerJoin(table3).on(a1 <==> x3)
 
-    val joined2 = table1
-      .innerJoin(table2).on(a1 <==> first2)
-      .innerJoin(table3).on(a1 <==> x3)
+  it("select *") {
+    val x1 = select(*).from(table1)
+    println(x1)
 
-    val all = select(*).from()
+    val x2 = select(*).from(joined1)
+    println(x2)
 
-//    val b = table.col('b)
-//    val c = table.col('c)
-//
-//    val all = select(*) from table
-//
-//    val aOnly = select(a) from table
-//
-//    println(all.sql)
-//    println(aOnly.sql)
-//
-//    val withWhere = {
-//      select(*)
-//        .from(table)
-//        .where((a ==== 1) and (b like "abc%"))
-//    }
-//
-//    println(withWhere.sql)
+    val x3 = select(*).from(table1.fullJoin(table2).on(a1 <==> first2))
+    println(x3)
   }
+
+  it("joins") {
+    illTyped{"table1.innerJoin(table2).on(a1 <==> x3)"}
+  }
+
 }

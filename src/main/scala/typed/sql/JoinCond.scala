@@ -3,9 +3,6 @@ package typed.sql
 sealed trait JoinCond
 object JoinCond {
 
-  sealed trait NoCond extends JoinCond
-  case object NoCond extends NoCond
-
   final case class Eq[K1, V, T1, K2, T2](
     c1: Column2[K1, V, T1],
     c2: Column2[K2, V, T2]

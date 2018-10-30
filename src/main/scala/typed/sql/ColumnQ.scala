@@ -3,7 +3,13 @@ package typed.sql
 import WhereClause._
 
 sealed trait ColumnQuery
-case object All extends ColumnQuery
+
+/**
+  * select *
+  *
+  */
+sealed trait All extends ColumnQuery
+case object All extends All
 
 case class Column[K, V] private[sql](k: K) extends ColumnQuery {
 
@@ -16,8 +22,8 @@ case class Column[K, V] private[sql](k: K) extends ColumnQuery {
 
 }
 
-
-case class Column2[K, V, T] private[sql](k: K, t: T) extends ColumnQuery { self =>
+sealed trait CLN[T] extends ColumnQuery
+case class Column2[K, V, T] private[sql](k: K, t: T) extends CLN[T] { self =>
 
   def `====`(v: V): Eq[K, V] = Eq(k, v)
   def `>`(v: V): Gt[K, V] = Gt(k, v)

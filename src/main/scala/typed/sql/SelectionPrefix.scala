@@ -1,35 +1,19 @@
 package typed.sql
 
 import shapeless._
-import typed.sql.internal.{SelectInfer2}
+import typed.sql.internal.SelectInfer2
 
-case class SelectionPrefix[A](query: A) {
+case class SelectionPrefix[Q](query: Q) {
 
-//  def from[S, Repr1 <: HList, O](t: Table[S])(
-//    implicit
-//    selInfer: SelectInfer.Aux[S, t.Repr, A, O]
-//  ): Selection[S, O] { type Repr = Repr1; type In = HNil; type WhereFlag = Selection.WithoutWhere.type } = {
-//    new Selection[S, O] {
-//      type Repr = t.Repr
-//
-//      type In = HNil
-//
-//      type WhereFlag = Selection.WithoutWhere.type
-//
-//      val labelledGeneric: LabelledGeneric.Aux[S, Repr] = t.labelledGeneric
-//
-//      val tableName = t.name
-//      val fields = selInfer.fields(t)
-//
-//      val sql: String = {
-//        val fs = fields.map(f => s"$tableName.$f").mkString(", ")
-//        s"SELECT $fs FROM $tableName"
-//      }
-//
-//      val in: In = HNil
-//    }
-//  }
-//
+  def from[S <: FSH, O](shape: S)(
+    implicit
+    inf: SelectInfer2.Aux[S, Q, O]
+  ): ast.Select[O] = inf.mkAst(shape)
+
+  def from[A, N, R <: HList, O](table: Table3[A, N, R])(
+    implicit
+    inf: SelectInfer2.Aux[From[TRepr[A, N, R]], Q, O]
+  ): ast.Select[O] = inf.mkAst(table.shape)
 
 }
 

@@ -3,23 +3,12 @@ package typed.sql
 import croodie.internal.FieldNames
 import shapeless._
 import shapeless.ops.record.Selector
-import typed.sql.prefixes.InnerJoinPrefix
+import typed.sql.prefixes._
 
-sealed trait Shape
-sealed trait SE extends Shape
-case object SE extends SE
-
-sealed trait SHead extends Shape
-final case class SHOpt[H <: TableRepr[_, _, _], C <: JoinCond, T <: Shape](h: H, cnd: C, t: T) extends SHead
-final case class SHNrm[H <: TableRepr[_, _, _], C <: JoinCond, T <: Shape](h: H, cnd: C, t: T) extends SHead
-
-final case class TableRepr[S, N, R <: HList](
-  lGen: LabelledGeneric.Aux[S, R]
-)
 
 case class Table3[S, N, R <: HList](
-  repr: TableRepr[S, N, R],
-  shape: SHNrm[TableRepr[S, N, R], JoinCond.NoCond, SE],
+  repr: TRepr[S, N, R],
+  shape: From[TRepr[S, N, R]],
   nameTyped: N
 ) { self =>
 
@@ -29,8 +18,17 @@ case class Table3[S, N, R <: HList](
   final def col[V](k: Witness)(implicit sel: Selector.Aux[R, k.T, V]): Column2[k.T, V, N] =
     new Column2[k.T, V, N](k.value, nameTyped)
 
-  def innerJoin[S2, N2, R2 <: HList](t2: Table3[S2, N2, R2]): InnerJoinPrefix[SHNrm[TableRepr[S, N, R], JoinCond.NoCond, SE], TableRepr[S2, N2, R2]] =
-    new InnerJoinPrefix(self.shape, t2.repr)
+  def innerJoin[S2, N2, R2 <: HList](t2: Table3[S2, N2, R2]): IJPrefix[From[TRepr[S, N ,R]], S2, N2, R2] =
+    new IJPrefix(self.shape, t2.shape)
+
+  def leftJoin[S2, N2, R2 <: HList](t2: Table3[S2, N2, R2]): LJPrefix[From[TRepr[S, N ,R]], S2, N2, R2] =
+    new LJPrefix(self.shape, t2.shape)
+
+  def rightJoin[S2, N2, R2 <: HList](t2: Table3[S2, N2, R2]): RJPrefix[From[TRepr[S, N ,R]], S2, N2, R2] =
+    new RJPrefix(self.shape, t2.shape)
+
+  def fullJoin[S2, N2, R2 <: HList](t2: Table3[S2, N2, R2]): FJPrefix[From[TRepr[S, N ,R]], S2, N2, R2] =
+    new FJPrefix(self.shape, t2.shape)
 }
 
 
@@ -46,8 +44,8 @@ object Table3{
         ev: k.T <:< Symbol,
         fieldNames: FieldNames[H]
       ): Table3[A, k.T, H] = {
-        val repr = TableRepr[A, k.T, H](labGen)
-        Table3(repr, SHNrm(repr, JoinCond.NoCond, SE), k.value)
+        val repr = TRepr[A, k.T, H](labGen)
+        Table3(repr, From(repr), k.value)
       }
     }
   }

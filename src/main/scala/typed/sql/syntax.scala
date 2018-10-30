@@ -2,7 +2,7 @@ package typed.sql
 
 import shapeless.{HList, LabelledGeneric, ProductArgs}
 import typed.sql.internal.WhereInfer
-import typed.sql.prefixes.InnerJoinPrefix
+import typed.sql.prefixes._
 
 object syntax extends ColumnSyntax {
 
@@ -43,10 +43,19 @@ object syntax extends ColumnSyntax {
     }
   }
 
-  implicit class JoinSyntax[S <: SHead](shape: S) {
+  implicit class JoinSyntax[A <: FSH](shape: A) {
 
-    def innerJoin[S2, N2, R2 <: HList](t: Table3[S2, N2, R2]): InnerJoinPrefix[S, TableRepr[S2, N2, R2]] =
-      new InnerJoinPrefix(shape, t.repr)
+    def innerJoin[S2, N2, R2 <: HList](t: Table3[S2, N2, R2]): IJPrefix[A, S2, N2, R2] =
+      new IJPrefix(shape, t.shape)
+
+    def leftJoin[S2, N2, R2 <: HList](t: Table3[S2, N2, R2]): LJPrefix[A, S2, N2, R2] =
+      new LJPrefix(shape, t.shape)
+
+    def rightJoin[S2, N2, R2 <: HList](t: Table3[S2, N2, R2]): RJPrefix[A, S2, N2, R2] =
+      new RJPrefix(shape, t.shape)
+    
+    def fullJoin[S2, N2, R2 <: HList](t: Table3[S2, N2, R2]): FJPrefix[A, S2, N2, R2] =
+      new FJPrefix(shape, t.shape)
   }
 
 }

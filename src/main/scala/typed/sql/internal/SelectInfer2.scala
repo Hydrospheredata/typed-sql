@@ -1,11 +1,55 @@
 package typed.sql.internal
 
-trait SelectInfer2[From, Q] {
+import shapeless._
+import typed.sql.internal.FSHOps.FromInfer
+import typed.sql.{All, FSH, ast}
+
+//trait SelectInfer2[From, Q] {
+//  type Out
+//  def fields(shape: From): List[String]
+//}
+//
+//trait LowPriotirySelectInfer2 {
+//  type Aux[From, Q, Out0] = SelectInfer2[From, Q] { type Out = Out0 }
+//
+//
+//}
+//
+//object SelectInfer2 extends LowPriotirySelectInfer2 {
+//
+//  implicit def forStar[S <: SHead](
+//    implicit
+//    fullValue:
+//  ): Aux[S, All.type :: HNil, S] = {
+//    new SelectInfer[S, R, All.type :: HNil] {
+//      type Out = S
+//      def fields(t: Table.Aux[S, R]): List[String] = t.columns
+//    }
+//  }
+//
+//}
+
+trait SelectInfer2[A <: FSH, Q] {
   type Out
+  def mkAst(shape: A): ast.Select[Out]
 }
 
-object SelectInfer2 {
-  type Aux[From, Q, Out0] = SelectInfer2[From, Q] {type Out = Out0}
+trait LowPrioSelectInfer2 {
+  type Aux[A <: FSH, Q, Out0] = SelectInfer2[A, Q] { type Out = Out0 }
+}
 
+object SelectInfer2 extends LowPrioSelectInfer2 {
 
+  implicit def forStar[A <: FSH, O](
+    implicit
+    allC: FSHOps.AllColumns[A],
+    fromInf: FromInfer[A, All.type :: HNil]
+  ): Aux[A, All.type :: HNil, HNil] = {
+    new SelectInfer2[A, All.type :: HNil] {
+      type Out = HNil
+      def mkAst(shape: A): ast.Select[HNil] = {
+        ast.Select(allC.columns, fromInf.mkAst(shape))
+      }
+    }
+  }
 }

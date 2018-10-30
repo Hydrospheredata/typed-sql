@@ -57,6 +57,8 @@ class TestWithDoobie extends FunSpec {
     createSql1.update.run.transact(xa).unsafeRunSync()
     val createSql2 = sql"CREATE TABLE yoyo (f1 serial primary key, f2 text, f3 text)"
     createSql2.update.run.transact(xa).unsafeRunSync()
+    val createSql3 = sql"CREATE TABLE haha (x serial primary key, y text, z text)"
+    createSql3.update.run.transact(xa).unsafeRunSync()
 
     (0 to 3).foreach(i => {
       val bv = "b" * i
@@ -75,7 +77,7 @@ class TestWithDoobie extends FunSpec {
     (0 to 2).foreach(i => {
       val bv = "b" * i
       val cv = s"c_$i"
-      val x = sql"INSERT INTO yoyo (f2, f3) VALUES ($bv, $cv)"
+      val x = sql"INSERT INTO haha (y, z) VALUES ($bv, $cv)"
       x.update.run.transact(xa).unsafeRunSync()
     })
 

@@ -369,7 +369,8 @@ object FSHOps {
       ev: N <:< Symbol,
       cndInf: JoinCondInfer[C],
       tInf: FromInferForStarSelect.Aux[tail, O1],
-      flTuple: FlattenTuple.Aux[O1, Option[A], O2]
+      flTuple: TupleAppend.Aux[O1, Option[A], O2]
+    //):Aux[LJ[TRepr[A, N, r], C, tail], (O1, Option[A])] = {
     ):Aux[LJ[TRepr[A, N, r], C, tail], O2] = {
       new FromInferForStarSelect[LJ[TRepr[A, N, r], C, tail]] {
         type Out = O2

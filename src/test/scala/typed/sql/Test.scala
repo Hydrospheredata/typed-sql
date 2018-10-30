@@ -26,9 +26,9 @@ class Test extends FunSpec {
 
   import typed.sql.syntax._
 
-  val table1 = Table3.of[TestRow].name('my_table)
-  val table2 = Table3.of[Row2].name('second_table)
-  val table3 = Table3.of[Row3].name('third)
+  val table1 = Table.of[TestRow].name('my_table)
+  val table2 = Table.of[Row2].name('second_table)
+  val table3 = Table.of[Row3].name('third)
 
   val a1 = table1.col('a)
   val b1 = table1.col('b)
@@ -71,6 +71,11 @@ class Test extends FunSpec {
 
     val x5 = select(a1, second2, c1).from(table1 leftJoin table2 on a1 <==> first2)
     println(x5.astData)
+  }
+
+  it("select where") {
+    val x1 = select(a1).from(table1).where(a1 > 1 and a1 < 5)
+    println(x1.astData)
   }
 
   it("joins") {

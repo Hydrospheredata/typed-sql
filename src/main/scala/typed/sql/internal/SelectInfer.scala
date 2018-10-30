@@ -25,7 +25,7 @@ trait LowPrioSelectInfer {
     new SelectInfer[A, H] {
       type Out = O
       override def mkAst(shape: A): ast.Select[O] = {
-        ast.Select(llsi.cols, fInf.mkAst(shape))
+        ast.Select(llsi.cols, fInf.mkAst(shape), None)
       }
     }
   }
@@ -41,7 +41,7 @@ object SelectInfer extends LowPrioSelectInfer {
     new SelectInfer[A, All.type :: HNil] {
       type Out = O
       def mkAst(shape: A): ast.Select[O] = {
-        ast.Select(allC.columns, fromInf.mkAst(shape))
+        ast.Select(allC.columns, fromInf.mkAst(shape), None)
       }
     }
   }

@@ -11,26 +11,16 @@ sealed trait ColumnQuery
 sealed trait All extends ColumnQuery
 case object All extends All
 
-case class Column[K, V] private[sql](k: K) extends ColumnQuery {
-
-  def `====`(v: V): Eq[K, V] = Eq(k, v)
-  def `>`(v: V): Gt[K, V] = Gt(k, v)
-  def `>=`(v: V):GtOrEq[K, V] = GtOrEq(k, v)
-  def `<`(v: V): Less[K, V] = Less(k, v)
-  def `<=`(v: V): LessOrEq[K, V] = LessOrEq(k, v)
-  def like(v: V)(implicit ev: V =:= String): Like[K] = Like(k, v)
-
-}
 
 sealed trait CLN[T] extends ColumnQuery
 case class Column2[K, V, T] private[sql](k: K, t: T) extends CLN[T] { self =>
 
-  def `====`(v: V): Eq[K, V] = Eq(k, v)
-  def `>`(v: V): Gt[K, V] = Gt(k, v)
-  def `>=`(v: V):GtOrEq[K, V] = GtOrEq(k, v)
-  def `<`(v: V): Less[K, V] = Less(k, v)
-  def `<=`(v: V): LessOrEq[K, V] = LessOrEq(k, v)
-  def like(v: V)(implicit ev: V =:= String): Like[K] = Like(k, v)
+  def `====`(v: V): Eq[K, V, T] = Eq(v)
+  def `>`(v: V): Gt[K, V, T] = Gt(v)
+  def `>=`(v: V): GtOrEq[K, V, T] = GtOrEq(v)
+  def `<`(v: V): Less[K, V, T] = Less(v)
+  def `<=`(v: V): LessOrEq[K, V, T] = LessOrEq(v)
+  def like(v: V)(implicit ev: V =:= String): Like[K, T] = Like(v)
 
   def `<==>`[K2, T2](c2: Column2[K2, V, T2]): JoinCond.Eq[K, V, T, K2, T2] = JoinCond.Eq(self, c2)
 }

@@ -2,10 +2,9 @@ package typed.sql
 
 import shapeless._
 
-trait Selection[S <: FSH, Out] {
-  type In <: HList
-
+trait Selection[S <: FSH, Out, In] {
   // is where was defined
+  // TODO !!
   type WhereFlag <: Selection.HasWhere
 
   def astData: ast.Select[Out]
@@ -18,9 +17,8 @@ object Selection {
   case object WhereDefined extends HasWhere
   case object WithoutWhere extends HasWhere
 
-  def create[S <: FSH, Out](select: ast.Select[Out]): Selection[S, Out] = {
-    new Selection[S, Out] {
-      type In = HNil
+  def create[S <: FSH, Out](select: ast.Select[Out]): Selection[S, Out, HNil] = {
+    new Selection[S, Out , HNil] {
       type WhereFlag = WithoutWhere.type
       val astData: ast.Select[Out] = select
       val in: HNil = HNil

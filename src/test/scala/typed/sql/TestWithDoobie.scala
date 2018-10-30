@@ -31,9 +31,9 @@ case class DTRow3(
 
 class TestWithDoobie extends FunSpec {
 
-  val table1 = Table3.of[DTRow1].name('test)
-  val table2 = Table3.of[DTRow2].name('yoyo)
-  val table3 = Table3.of[DTRow3].name('haha)
+  val table1 = Table.of[DTRow1].name('test)
+  val table2 = Table.of[DTRow2].name('yoyo)
+  val table3 = Table.of[DTRow3].name('haha)
 
   val a1 = table1.col('a)
 
@@ -95,6 +95,9 @@ class TestWithDoobie extends FunSpec {
     val res3: List[(DTRow1, Option[DTRow2])] = sAll3.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res3)
 
+    val sWhere1 = select(*).from(table1.leftJoin(table2).on(a1 <==> f1_2)).where(a1 > 2 and a1 < 5)
+    val resW1: List[(DTRow1, Option[DTRow2])] = sWhere1.toQuery.to[List].transact(xa).unsafeRunSync()
+    println(resW1)
 //TODO: bug in READ?
 //    val sAll4 =
 //      select(*).from(

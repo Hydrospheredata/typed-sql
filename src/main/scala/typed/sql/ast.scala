@@ -19,6 +19,16 @@ object ast {
   final case class RightJoin(table: String, cond: JoinCond) extends Join
   final case class FullJoin(table: String, cond: JoinCond) extends Join
 
+  sealed trait WhereCond extends Product with Serializable
+  final case class WhereEq(col: Col) extends WhereCond
+  final case class Less(col: Col) extends WhereCond
+  final case class LessOrEq(col: Col) extends WhereCond
+  final case class Gt(col: Col) extends WhereCond
+  final case class GtOrEq(col: Col) extends WhereCond
+  final case class Like(col: Col) extends WhereCond
+  final case class And(c1: WhereCond, c2: WhereCond) extends WhereCond
+  final case class Or(c1: WhereCond, c2: WhereCond) extends WhereCond
+
   case class From(table: String, joins: List[Join])
-  case class Select[Out](cols: List[Col], from: From)
+  case class Select[Out](cols: List[Col], from: From, where: Option[WhereCond])
 }

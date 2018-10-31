@@ -87,7 +87,6 @@ class TestWithDoobie extends FunSpec {
 
 
     val sAll2 = select(*).from(table1.innerJoin(table2).on(a1 <==> f1_2))
-    val z = sAll2.toQuery
     val res2: List[(DTRow1, DTRow2)] = sAll2.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res2)
 
@@ -99,14 +98,16 @@ class TestWithDoobie extends FunSpec {
     val sWhere1 = select(*).from(table1.leftJoin(table2).on(a1 <==> f1_2)).where(a1 > 2 and a1 < 5)
     val resW1: List[(DTRow1, Option[DTRow2])] = sWhere1.toQuery.to[List].transact(xa).unsafeRunSync()
     println(resW1)
-//TODO: bug in READ?
-//    val sAll4 =
-//      select(*).from(
-//        table1
-//          .leftJoin(table2).on(a1 <==> f1_2)
-//          .leftJoin(table3).on(a1 <==> x3)
-//      )
-//    val res4: List[(DTRow1, Option[DTRow2], Option[DTRow3])] = sAll4.toQuery.to[List].transact(xa).unsafeRunSync()
-//    println(res4)
+
+
+    val sAll4 =
+      select(*).from(
+        table1
+          .leftJoin(table2).on(a1 <==> f1_2)
+          .leftJoin(table3).on(a1 <==> x3)
+      )
+    println(sAll4.toFragment)
+    val res4 = sAll4.toQuery.to[List].transact(xa).unsafeRunSync()
+    println(res4)
   }
 }

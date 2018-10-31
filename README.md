@@ -9,6 +9,7 @@ import doobie.implicits._
 import doobie.syntax._
 
 import typed.sql.syntax._
+import typed.sql.toDoobie._
 
 // Declare tables
 case class Row1(

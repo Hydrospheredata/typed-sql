@@ -110,25 +110,25 @@ object FSHOps {
       implicit
       fromRepr1: FromRepr[T],
       rest: AllColumns[tail]
-    ): AllColumns[IJ[T, c, tail]] = create(fromRepr1.columns ++ rest.columns)
+    ): AllColumns[IJ[T, c, tail]] = create(rest.columns ++ fromRepr1.columns)
 
     implicit def forLJ[T <: TR, c <: JoinCond, tail <: FSH](
       implicit
       fromRepr1: FromRepr[T],
       rest: AllColumns[tail]
-    ): AllColumns[LJ[T, c, tail]] = create(fromRepr1.columns ++ rest.columns)
+    ): AllColumns[LJ[T, c, tail]] = create(rest.columns ++ fromRepr1.columns)
 
     implicit def forRJ[T <: TR, c <: JoinCond, tail <: FSH](
       implicit
       fromRepr1: FromRepr[T],
       rest: AllColumns[tail]
-    ): AllColumns[RJ[T, c, tail]] = create(fromRepr1.columns ++ rest.columns)
+    ): AllColumns[RJ[T, c, tail]] = create(rest.columns ++ fromRepr1.columns)
 
     implicit def forFJ[T <: TR, c <: JoinCond, tail <: FSH](
       implicit
       fromRepr1: FromRepr[T],
       rest: AllColumns[tail]
-    ): AllColumns[FJ[T, c, tail]] = create(fromRepr1.columns ++ rest.columns)
+    ): AllColumns[FJ[T, c, tail]] = create(rest.columns ++ fromRepr1.columns)
   }
 
 
@@ -331,7 +331,6 @@ object FSHOps {
   }
 
 
-  //TODO: flatten tuples?
   object FromInferForStarSelect {
     type Aux[A <: FSH,  Out0] = FromInferForStarSelect[A]  { type Out = Out0 }
 

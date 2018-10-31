@@ -11,11 +11,11 @@ case class Table[S, N, R <: HList](
   nameTyped: N
 ) { self =>
 
-  final def column[V](k: Witness)(implicit sel: Selector.Aux[R, k.T, V]): Column2[k.T, V, N] =
-    new Column2[k.T, V, N](k.value, nameTyped)
+  final def column[V](k: Witness)(implicit sel: Selector.Aux[R, k.T, V]): Column[k.T, V, N] =
+    new Column[k.T, V, N](k.value, nameTyped)
 
-  final def col[V](k: Witness)(implicit sel: Selector.Aux[R, k.T, V]): Column2[k.T, V, N] =
-    new Column2[k.T, V, N](k.value, nameTyped)
+  final def col[V](k: Witness)(implicit sel: Selector.Aux[R, k.T, V]): Column[k.T, V, N] =
+    new Column[k.T, V, N](k.value, nameTyped)
 
   def innerJoin[S2, N2, R2 <: HList](t2: Table[S2, N2, R2]): IJPrefix[From[TRepr[S, N ,R]], S2, N2, R2] =
     new IJPrefix(self.shape, t2.shape)

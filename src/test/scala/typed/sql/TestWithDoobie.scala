@@ -87,6 +87,7 @@ class TestWithDoobie extends FunSpec {
 
 
     val sAll2 = select(*).from(table1.innerJoin(table2).on(a1 <==> f1_2))
+    val z = sAll2.toQuery
     val res2: List[(DTRow1, DTRow2)] = sAll2.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res2)
 

@@ -238,8 +238,8 @@ object FSHOps {
       ev1: TName <:< Symbol,
       w2: Witness.Aux[K],
       ev2: K <:< Symbol
-    ): Aux[A, Column2[K, v, TName] :: T, X :: O] = {
-      new LowLevelSelectInfer[A, Column2[K, v, TName] :: T] {
+    ): Aux[A, Column[K, v, TName] :: T, X :: O] = {
+      new LowLevelSelectInfer[A, Column[K, v, TName] :: T] {
         type Out = X :: O
         def cols: List[ast.Col] = ast.Col(w1.value.name, w2.value.name) :: next.cols
       }

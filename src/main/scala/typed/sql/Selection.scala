@@ -3,8 +3,6 @@ package typed.sql
 import shapeless._
 
 trait Selection[S <: FSH, Out, In] {
-  // is where was defined
-  // TODO !!
   type WhereFlag <: Selection.HasWhere
 
   def astData: ast.Select[Out]

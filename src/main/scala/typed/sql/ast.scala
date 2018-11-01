@@ -31,4 +31,7 @@ object ast {
 
   case class From(table: String, joins: List[Join])
   case class Select[Out](cols: List[Col], from: From, where: Option[WhereCond])
+
+
+  case class Delete(table: String, where: Option[WhereCond])
 }

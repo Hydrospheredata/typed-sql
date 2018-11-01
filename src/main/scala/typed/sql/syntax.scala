@@ -10,14 +10,30 @@ object syntax extends ColumnSyntax {
     def applyProduct[A](query: A): SelectionPrefix[A] = SelectionPrefix(query)
   }
 
+  object delete {
+
+    def from[A, N, R <: HList](table: Table[A, N, R]): Deletion[From[TRepr[A, N, R]], HNil] =
+      Deletion.create(table.shape, table.name)
+
+  }
+
   val `*` = All
 
-  implicit class WhereSyntax[S <: FSH, O](selection: Selection[S, O, HNil]) {
+  implicit class WhereSelectSyntax[S <: FSH, O](selection: Selection[S, O, HNil]) {
 
     def where[C <: WhereClause, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Selection[S, O, In0] =
       new Selection[S, O, In0] {
         type WhereFlag = Selection.WhereDefined.type
         def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
+        def in: In0 = inf.out(c)
+      }
+  }
+
+  implicit class WhereDeleteSyntax[S <: FSH, O](deletion: Deletion[S, O]) {
+
+    def where[C <: WhereClause, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Deletion[S, In0] =
+      new Deletion[S, In0] {
+        def astData: ast.Delete = deletion.astData.copy(where = Some(inf.mkAst(c)))
         def in: In0 = inf.out(c)
       }
   }

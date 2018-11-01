@@ -8,7 +8,8 @@ import typed.sql.prefixes._
 
 case class Table[S, N, R <: HList](
   shape: From[TRepr[S, N, R]],
-  nameTyped: N
+  nameTyped: N,
+  name: String
 ) { self =>
 
   final def column[V](k: Witness)(implicit sel: Selector.Aux[R, k.T, V]): Column[k.T, V, N] =
@@ -44,7 +45,7 @@ object Table{
         fieldNames: FieldNames[H]
       ): Table[A, k.T, H] = {
         val repr = TRepr[A, k.T, H](labGen)
-        Table(From(repr), k.value)
+        Table(From(repr), k.value, k.value.name)
       }
     }
   }

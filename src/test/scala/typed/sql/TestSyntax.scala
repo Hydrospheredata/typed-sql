@@ -25,4 +25,15 @@ class TestSyntax extends FunSpec with Matchers{
       delete.from(table1).where(a1 ==== 2).astData shouldBe exp
     }
   }
+
+  describe("update") {
+    val testUpdate = TableUpd.of[TestRow].primaryKey('a).name('test_upd)
+
+    val a1 = testUpdate.col('a)
+    val b1 = testUpdate.col('b)
+
+    val x = update(testUpdate).set(b1 := "yoyo")
+
+    x.astData shouldBe ast.Update("test_upd", List(ast.Set(ast.Col("test_upd", "b"))))
+  }
 }

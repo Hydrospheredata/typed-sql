@@ -5,6 +5,17 @@ import shapeless.{HList, LabelledGeneric}
 sealed trait TR
 final case class TRepr[S, N, R <: HList](lGen: LabelledGeneric.Aux[S, R]) extends TR
 
+sealed trait TR2
+final class TRepr2[S, N, Rs <: HList, Ru <: HList] extends TR2
+
+object TR2 {
+  trait Aux[A, B]
+  object Aux {
+    implicit def aux[S, N, Rs <: HList, Ru <: HList, A](implicit ev: A =:= TRepr2[S, N, Rs, Ru]): Aux[A, TRepr2[S, N, Rs, Ru]] = null
+  }
+}
+
+
 /**
   * FROM Table shape.
   * Describes plain tables|joins

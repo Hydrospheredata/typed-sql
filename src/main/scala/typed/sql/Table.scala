@@ -3,8 +3,8 @@ package typed.sql
 import poc.internal.FieldNames
 import shapeless._
 import shapeless.ops.record.Selector
+import typed.sql.internal.RemoveFields
 import typed.sql.prefixes._
-
 
 case class Table[S, N, R <: HList](
   shape: From[TRepr[S, N, R]],
@@ -49,5 +49,56 @@ object Table{
       }
     }
   }
+}
+
+case class TableUpd[A, N, Rs <: HList, Ru <: HList](
+  repr: TRepr2[A, N, Rs, Ru],
+  nameTyped: N,
+  name: String
+){
+
+  final def column[V](k: Witness)(implicit sel: Selector.Aux[Rs, k.T, V]): Column[k.T, V, N] =
+    new Column[k.T, V, N](k.value, nameTyped)
+
+  final def col[V](k: Witness)(implicit sel: Selector.Aux[Rs, k.T, V]): Column[k.T, V, N] =
+    new Column[k.T, V, N](k.value, nameTyped)
+}
+
+object TableUpd {
+
+  object of {
+    def apply[A] = new TableBuild[A]
+
+    class TableBuild[A] {
+
+      def primaryKey[Rs <: HList, Ru <: HList](k: Witness)(
+        implicit
+        labGen: LabelledGeneric.Aux[A, Rs],
+        rf: RemoveFields.Aux[Rs, k.T :: HNil, Ru]
+      ): TableBuild2[A, Rs, Ru] = new TableBuild2
+
+      def name[H <: HList](k: Witness)(
+        implicit
+        labGen: LabelledGeneric.Aux[A, H],
+        ev: k.T <:< Symbol
+      ): TableUpd[A, k.T, H, HNil] = {
+        val repr = new TRepr2[A, k.T, H, HNil]()
+        TableUpd(repr, k.value, k.value.name)
+      }
+
+    }
+
+    class TableBuild2[A, R <: HList, Ru <: HList] {
+
+      def name(k: Witness)(
+        implicit
+        ev: k.T <:< Symbol
+      ): TableUpd[A, k.T, R, Ru] = {
+        val repr = new TRepr2[A, k.T, R, Ru]()
+        TableUpd(repr, k.value, k.value.name)
+      }
+    }
+  }
+
 }
 

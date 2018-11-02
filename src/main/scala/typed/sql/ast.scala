@@ -34,4 +34,7 @@ object ast {
 
 
   case class Delete(table: String, where: Option[WhereCond])
+
+  case class Set(col: Col)
+  case class Update(table: String, sets: List[Set])
 }

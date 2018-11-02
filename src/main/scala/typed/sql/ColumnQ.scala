@@ -23,7 +23,11 @@ case class Column[K, V, T] private[sql](k: K, t: T) extends CLN[T] { self =>
   def like(v: V)(implicit ev: V =:= String): Like[K, T] = Like(v)
 
   def `<==>`[K2, T2](c2: Column[K2, V, T2]): JoinCond.Eq[K, V, T, K2, T2] = JoinCond.Eq(self, c2)
+
+  def `:=`(v: V): Assign[K, V, T] = Assign(v)
 }
+
+case class Assign[K, V, T](v: V)
 
 trait ColumnSyntax {
 

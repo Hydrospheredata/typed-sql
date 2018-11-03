@@ -31,11 +31,13 @@ case class DTRow3(
 
 class TestWithDoobie extends FunSpec {
 
-  val table1 = Table.of[DTRow1].name('test)
+  val table1 = Table.of[DTRow1].primaryKey('a).name('test)
   val table2 = Table.of[DTRow2].name('yoyo)
   val table3 = Table.of[DTRow3].name('haha)
 
   val a1 = table1.col('a)
+  val b1 = table1.col('b)
+  val c1 = table1.col('c)
 
   val f1_2 = table2.col('f1)
 
@@ -112,8 +114,11 @@ class TestWithDoobie extends FunSpec {
 
 
     val del1 = delete from table1 where a1 ==== 1
-    println(del1.toFragment)
     val delR = del1.toUpdate.run.transact(xa).unsafeRunSync()
     println(delR)
+
+    val upd1 = update(table1).set(b1 := "UPDATED B").where(a1 ==== 2)
+    val updR = upd1.toUpdate.run.transact(xa).unsafeRunSync()
+    println(updR)
   }
 }

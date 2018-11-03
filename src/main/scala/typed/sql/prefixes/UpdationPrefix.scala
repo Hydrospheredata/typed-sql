@@ -10,8 +10,8 @@ class UpdationPrefix[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru])
     def applyProduct[In <: HList, R <: HList](values: In)(
       implicit
       inferUpdateSet: InferUpdateSet.Aux[Ru, In, R]
-    ): Updation[R] = new Updation[R] {
-      override def astData: ast.Update = ast.Update(table.name, inferUpdateSet.mkAst)
+    ): Updation[From[TRepr[A, N, Rs, Ru]], R] = new Updation[From[TRepr[A, N, Rs, Ru]], R] {
+      override def astData: ast.Update = ast.Update(table.name, inferUpdateSet.mkAst, None)
       override def in: R = inferUpdateSet.out(values)
     }
   }

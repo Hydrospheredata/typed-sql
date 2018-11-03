@@ -1,6 +1,7 @@
 package typed.sql
 
 import shapeless._
+import shapeless.ops.adjoin.Adjoin
 import typed.sql.internal.WhereInfer
 import typed.sql.prefixes._
 
@@ -37,6 +38,19 @@ object syntax extends ColumnSyntax {
       new Deletion[S, In0] {
         def astData: ast.Delete = deletion.astData.copy(where = Some(inf.mkAst(c)))
         def in: In0 = inf.out(c)
+      }
+  }
+
+  implicit class WhereUpdateSyntax[S <: FSH, In1](upd: Updation[S, In1]) {
+
+    def where[C <: WhereClause, In0 <: HList, O <: HList](c: C)(
+      implicit
+      inf: WhereInfer.Aux[S, C, In0],
+      adjoin: Adjoin.Aux[In1 :: In0 :: HNil, O]
+    ): Updation[S, O] =
+      new Updation[S, O] {
+        def astData: ast.Update = upd.astData.copy(where = Some(inf.mkAst(c)))
+        def in: O = adjoin(upd.in :: inf.out(c) :: HNil)
       }
   }
 

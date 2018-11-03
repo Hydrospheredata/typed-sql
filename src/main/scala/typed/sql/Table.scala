@@ -93,8 +93,8 @@ object Table {
         implicit
         labGen: LabelledGeneric.Aux[A, H],
         ev: k.T <:< Symbol
-      ): Table[A, k.T, H, HNil] = {
-        val repr = new TRepr[A, k.T, H, HNil]()
+      ): Table[A, k.T, H, H] = {
+        val repr = new TRepr[A, k.T, H, H]()
         Table(repr, k.value, k.value.name)
       }
 

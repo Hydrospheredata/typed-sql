@@ -57,6 +57,23 @@ object toDoobie {
     s"DELETE FROM ${d.table}" + whereR
   }
 
+  private def renderUpd(upd: ast.Update): String = {
+    def renderWCOnd(wc: ast.WhereCond): String = wc match {
+      case ast.WhereEq(col) => s"${col.name} = ?"
+      case ast.Less(col) => s"${col.name} < ?"
+      case ast.LessOrEq(col) => s"${col.name} <= ?"
+      case ast.Gt(col) => s"${col.name} > ?"
+      case ast.GtOrEq(col) => s"${col.name} >= ?"
+      case ast.Like(col) => s"${col.name} like ?"
+      case ast.And(c1, c2) => renderWCOnd(c1) + " AND " + renderWCOnd(c2)
+      case ast.Or(c1, c2) => renderWCOnd(c1) + " OR " + renderWCOnd(c2)
+    }
+
+    val whereR = upd.where.map(c => " WHERE " + renderWCOnd(c)).getOrElse("")
+    val sets = upd.sets.map(s => s"${s.col.name} = ?").mkString(", ")
+    s"UPDATE ${upd.table} SET $sets" + whereR
+  }
+
   implicit class WrapSelection[S <: FSH, Out, In](sel: Selection[S, Out, In]) {
 
     def toFragment(implicit param: Param[In]): Fragment = {
@@ -72,6 +89,16 @@ object toDoobie {
     def toFragment(implicit param: Param[In]): Fragment = {
       val sql = renderDel(del.astData)
       Fragment[In](sql, del.in, None)(param.write)
+    }
+
+    def toUpdate(implicit param: Param[In]): Update0 = toFragment.update
+  }
+
+  implicit class WrapUpdation[S <: FSH, In](upd: Updation[S, In]) {
+
+    def toFragment(implicit param: Param[In]): Fragment = {
+      val sql = renderUpd(upd.astData)
+      Fragment[In](sql, upd.in, None)(param.write)
     }
 
     def toUpdate(implicit param: Param[In]): Update0 = toFragment.update

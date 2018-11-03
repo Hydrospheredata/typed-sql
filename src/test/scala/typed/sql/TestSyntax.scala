@@ -35,11 +35,16 @@ class TestSyntax extends FunSpec with Matchers{
 
     it("update column") {
       val x = update(testUpdate).set(b1 := "yoyo")
-      x.astData shouldBe ast.Update("test_upd", List(ast.Set(ast.Col("test_upd", "b"))))
+      x.astData shouldBe ast.Update("test_upd", List(ast.Set(ast.Col("test_upd", "b"))), None)
     }
 
     it("can't update primary key") {
       illTyped{"update(testUpdate).set(a1 := 42)"}
+    }
+
+    it("with where") {
+      val x = update(testUpdate).set(b1 := "yoyo").where(a1 ==== 4)
+      x.astData shouldBe ast.Update("test_upd", List(ast.Set(ast.Col("test_upd", "b"))), Some(ast.WhereEq(ast.Col("test_upd", "a"))))
     }
   }
 }

@@ -1,6 +1,6 @@
 package typed.sql
 
-trait Updation[In] {
+trait Updation[S <: FSH, In] {
   def astData: ast.Update
   def in: In
 }

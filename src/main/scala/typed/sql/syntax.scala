@@ -12,12 +12,12 @@ object syntax extends ColumnSyntax {
 
   object delete {
 
-    def from[A, N, R <: HList](table: Table[A, N, R]): Deletion[From[TRepr[A, N, R]], HNil] =
-      Deletion.create(table.shape, table.name)
+    def from[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): Deletion[From[TRepr[A, N, Rs, Ru]], HNil] =
+      Deletion.create(From(table.repr), table.name)
 
   }
 
-  def update[A, N, Rs <: HList, Ru <: HList](table: TableUpd[A, N, Rs, Ru]): UpdationPrefix[A, N, Rs, Ru] = new UpdationPrefix(table)
+  def update[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): UpdationPrefix[A, N, Rs, Ru] = new UpdationPrefix(table)
 
   val `*` = All
 
@@ -42,17 +42,17 @@ object syntax extends ColumnSyntax {
 
   implicit class JoinSyntax[A <: FSH](shape: A) {
 
-    def innerJoin[S2, N2, R2 <: HList](t: Table[S2, N2, R2]): IJPrefix[A, S2, N2, R2] =
-      new IJPrefix(shape, t.shape)
+    def innerJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): IJPrefix[A, S2, N2, Rs2, ru] =
+      new IJPrefix(shape, From(t.repr))
 
-    def leftJoin[S2, N2, R2 <: HList](t: Table[S2, N2, R2]): LJPrefix[A, S2, N2, R2] =
-      new LJPrefix(shape, t.shape)
+    def leftJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): LJPrefix[A, S2, N2, Rs2, ru] =
+      new LJPrefix(shape, From(t.repr))
 
-    def rightJoin[S2, N2, R2 <: HList](t: Table[S2, N2, R2]): RJPrefix[A, S2, N2, R2] =
-      new RJPrefix(shape, t.shape)
+    def rightJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): RJPrefix[A, S2, N2, Rs2, ru] =
+      new RJPrefix(shape, From(t.repr))
 
-    def fullJoin[S2, N2, R2 <: HList](t: Table[S2, N2, R2]): FJPrefix[A, S2, N2, R2] =
-      new FJPrefix(shape, t.shape)
+    def fullJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): FJPrefix[A, S2, N2, Rs2, ru] =
+      new FJPrefix(shape, From(t.repr))
   }
 
 }

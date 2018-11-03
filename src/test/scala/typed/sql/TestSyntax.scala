@@ -27,13 +27,19 @@ class TestSyntax extends FunSpec with Matchers{
   }
 
   describe("update") {
-    val testUpdate = TableUpd.of[TestRow].primaryKey('a).name('test_upd)
+
+    val testUpdate = Table.of[TestRow].primaryKey('a).name('test_upd)
 
     val a1 = testUpdate.col('a)
     val b1 = testUpdate.col('b)
 
-    val x = update(testUpdate).set(b1 := "yoyo")
+    it("update column") {
+      val x = update(testUpdate).set(b1 := "yoyo")
+      x.astData shouldBe ast.Update("test_upd", List(ast.Set(ast.Col("test_upd", "b"))))
+    }
 
-    x.astData shouldBe ast.Update("test_upd", List(ast.Set(ast.Col("test_upd", "b"))))
+    it("can't update primary key") {
+      illTyped{"update(testUpdate).set(a1 := 42)"}
+    }
   }
 }

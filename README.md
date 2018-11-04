@@ -1,8 +1,10 @@
 ### Typed-sql
 
-Dsl library for writing [doobie](https://github.com/tpolecat/doobie) queries in a typesafe way.
+This is a frontend library for writing [doobie](https://github.com/tpolecat/doobie) queries.
+It's goal to provide a typesafe-dsl for it and to provide the closest to the plain SQL language.
 
-Example:
+### Usage
+Import:
 ```scala
 import doobie._
 import doobie.implicits._
@@ -10,50 +12,83 @@ import doobie.syntax._
 
 import typed.sql.syntax._
 import typed.sql.toDoobie._
+```
 
-// Declare tables
-case class Row1(
+Declare case class for row, create table from it and columns:
+```scala
+case class Row(
   a: Int,
   b: String,
   c: String
 )
 
-case class Row2(
-  f1: Int,
-  f2: String,
-  f3: String
-)
+val table = Table.of[Row].name('test)
+// or if `a` column is a primary key and has serial type
+val table = Table.of[Row].autoColumn('a).name('test)
 
-val table1 = Table.of[Row1].name('test)
-val table2 = Table.of[Row2].name('test2)
-
-// Selects
-
-val s1 = select(*).from(table1)
-val q1: Query0[Row1] = s1.toQuery
-//s1.toQuery.to[List] return doobie.ConnectionIO[List[Row1]]
-
-val a1 = table1.col('a)
-val b1 = table1.col('b)
-
-val s2 = select(a1, b1).from(table1)
-val q2: Query[(Int, String)] = s2.toQuery
-
-// Where
-
-val s3 = select(*).from(table1).where(a1 > 5)
-val s4 = select(*).from(table1).where(a1 > 5 and b like "foo%")
-
-// Joins
-val f1 = table2.col('f1)
-
-val s5 = select(*).from(table1 innerJoin table2 on a1 <==> f1)
-val q5: Query[(Row1, Row2)] = s5.toQuery
+val a = table.col('a)
+val b = table.col('b)
+val c = table.col('c)
 ```
 
-WIP:
-- [ ] ORDER BY
-- [ ] INSERT
-- [ ] UPDATE
-- [ ] DELETE
+Now it's time for to write queries.
+Exmaples:
+```scala
+insert.into(table).values(1, "b", "c")
+// or if `a` column is a primary key and has serial type
+insert.into(table).values("b", "c")
 
+select(*).from(table)
+select(*).from(table).where(a === 1)
+select(a, b).from(table)
+
+update(table).set(b := "Upd B").where(a ==== 1)
+
+delete.from(table).where(a === 1)
+```
+
+Convert to `Query0`/`Update0` using `toQuery`/`toUpdate`:
+```scala
+
+val q0: Query0[Row] = select(*).from(table).toQuery
+// the same for update and insert
+val u0: Update0 = delete.from(table).where(a === 1).toUpdate
+```
+
+#### More select examples:
+Order By:
+```scala
+// SELECT * FROM TEST ORDER BY test.a ASC
+select(*).from(table).orderBy(a)
+
+// SELECT * FROM TEST ORDER BY test.a DESC
+select(*).from(table).orderBy(a.DESC)
+
+// SELECT * FROM TEST ORDER BY test.a ASC test.b ASC
+select(*).from(table).orderBy(a, b)
+```
+
+Limit/Offset:
+```scala
+select(*).from(table).limit(10).offset(1)
+```
+
+Joins:
+```scala
+case class Row2(a: Int)
+val table2 = Table.of[Row2].name('test2) 
+val a2 = table2.col('a2)
+
+// Query0[(Row1, Row2)]
+select(*).from(table.innerJoin(table2).on(a1 <==> a2))
+// Query0[(Row1, Option[Row2])]
+select(*).from(table.leftJoin(table2).on(a1 <==> a2))
+// Query0[(Option[Row1], Row2)]
+select(*).from(table.rightJoin(table2).on(a1 <==> a2))
+// Query0[(Option[Row1], Option[Row2])]
+select(*).from(table.fullJoin(table2).on(a1 <==> a2))
+
+// Query0[(Int, Int)]
+select(a, a2).from(table.innerJoin(table2).on(a1 <==> a2))
+```
+Note: it's possible to join more that two tables

@@ -20,7 +20,7 @@ object toDoobie {
         }
         s"${col.table}.${col.name} $o"
       }}).mkString(",")
-      s"ORDER BY $body"
+      s" ORDER BY $body"
     }
 
     def renderWCOnd(wc: ast.WhereCond): String = wc match {
@@ -51,7 +51,11 @@ object toDoobie {
     val from = s.from.table
     val whereR = s.where.map(c => " WHERE " + renderWCOnd(c)).getOrElse("")
     val order = s.orderBy.map(o => renderOrderBy(o)).getOrElse("")
-    s"SELECT $cols FROM $from $joins" + whereR + order
+
+    //TODO: move to params!
+    val limitOpt = s.limit.map(v => s" LIMIT ?").getOrElse("")
+    val offsetOpt = s.offset.map(v => s" OFFSET ?").getOrElse("")
+    s"SELECT $cols FROM $from $joins" + whereR + order + limitOpt + offsetOpt
   }
 
   private def renderDel(d: ast.Delete): String = {

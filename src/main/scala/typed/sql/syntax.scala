@@ -75,6 +75,27 @@ object syntax extends ColumnSyntax {
     }
   }
 
+  implicit class LimitOffsetSyntax[S <: FSH, O, In](sel: Selection[S, O, In]) {
+
+    def limit[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Selection[S, O, J] =
+        new Selection[S, O, J] {
+          type WhereFlag = sel.WhereFlag
+          val astData: ast.Select[O] = {
+            sel.astData.copy(limit = Some(i))
+          }
+          val in: J = adjoin(sel.in :: i :: HNil)
+        }
+
+    def offset[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Selection[S, O, J] =
+      new Selection[S, O, J] {
+        type WhereFlag = sel.WhereFlag
+        val astData: ast.Select[O] = {
+          sel.astData.copy(offset = Some(i))
+        }
+        val in: J = adjoin(sel.in :: i :: HNil)
+      }
+  }
+
   implicit class JoinSyntax[A <: FSH](shape: A) {
 
     def innerJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): IJPrefix[A, S2, N2, Rs2, ru] =

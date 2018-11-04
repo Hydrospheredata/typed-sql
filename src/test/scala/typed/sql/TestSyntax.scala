@@ -70,7 +70,8 @@ class TestSyntax extends FunSpec with Matchers{
           List(ast.Col("my_table", "a")),
           ast.From("my_table", List.empty),
           None,
-          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.ASC)))
+          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.ASC))),
+          None, None
         )
         data shouldBe exp
       }
@@ -83,7 +84,8 @@ class TestSyntax extends FunSpec with Matchers{
           List(ast.Col("my_table", "a")),
           ast.From("my_table", List.empty),
           None,
-          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.ASC)))
+          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.ASC))),
+          None, None
         )
         data shouldBe exp
       }
@@ -96,7 +98,8 @@ class TestSyntax extends FunSpec with Matchers{
           List(ast.Col("my_table", "a")),
           ast.From("my_table", List.empty),
           None,
-          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.DESC)))
+          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.DESC))),
+          None, None
         )
         data shouldBe exp
       }
@@ -114,7 +117,8 @@ class TestSyntax extends FunSpec with Matchers{
               ast.Col("my_table", "a") -> ast.ASC,
               ast.Col("my_table", "b") -> ast.ASC
             )
-          ))
+          )),
+          None, None
         )
         data shouldBe exp
       }

@@ -40,7 +40,9 @@ object ast {
     cols: List[Col],
     from: From,
     where: Option[WhereCond],
-    orderBy: Option[OrderBy]
+    orderBy: Option[OrderBy],
+    limit: Option[Int],
+    offset: Option[Int]
   )
 
   case class Delete(table: String, where: Option[WhereCond])

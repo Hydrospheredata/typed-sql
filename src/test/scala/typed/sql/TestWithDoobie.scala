@@ -87,7 +87,6 @@ class TestWithDoobie extends FunSpec {
     val res1: List[DTRow1] = sAll1.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res1)
 
-
     val sAll2 = select(*).from(table1.innerJoin(table2).on(a1 <==> f1_2))
     val res2: List[(DTRow1, DTRow2)] = sAll2.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res2)
@@ -116,6 +115,11 @@ class TestWithDoobie extends FunSpec {
     println(sAll5.toFragment)
     val res5 = sAll5.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res5)
+
+    val sAll6 = select(*).from(table1).orderBy(a1).limit(1).offset(1)
+    println(sAll6.toFragment)
+    val res6 = sAll6.toQuery.to[List].transact(xa).unsafeRunSync()
+    println(res6)
 
     val del1 = delete from table1 where a1 ==== 1
     val delR = del1.toUpdate.run.transact(xa).unsafeRunSync()

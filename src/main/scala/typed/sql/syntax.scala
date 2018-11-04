@@ -20,6 +20,11 @@ object syntax extends ColumnSyntax {
 
   def update[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): UpdationPrefix[A, N, Rs, Ru] = new UpdationPrefix(table)
 
+  object insert {
+
+    def into[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): InsertIntoPrefix[A, N, Rs, Ru] = new InsertIntoPrefix(table)
+  }
+
   val `*` = All
 
   implicit class WhereSelectSyntax[S <: FSH, O](selection: Selection[S, O, HNil]) {

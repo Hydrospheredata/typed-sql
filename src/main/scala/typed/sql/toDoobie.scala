@@ -74,6 +74,12 @@ object toDoobie {
     s"UPDATE ${upd.table} SET $sets" + whereR
   }
 
+  private def renderInsInto(ins: ast.InsertInto): String = {
+    val columns = ins.columns.map(c => c.name).mkString("(", ",", ")")
+    val values = ins.columns.map(_ => "?").mkString("(", ",", ")")
+    s"INSERT INTO ${ins.table} $columns VALUES $values"
+  }
+
   implicit class WrapSelection[S <: FSH, Out, In](sel: Selection[S, Out, In]) {
 
     def toFragment(implicit param: Param[In]): Fragment = {
@@ -99,6 +105,16 @@ object toDoobie {
     def toFragment(implicit param: Param[In]): Fragment = {
       val sql = renderUpd(upd.astData)
       Fragment[In](sql, upd.in, None)(param.write)
+    }
+
+    def toUpdate(implicit param: Param[In]): Update0 = toFragment.update
+  }
+
+  implicit class WrapIns[In](ins: Insert[In]) {
+
+    def toFragment(implicit param: Param[In]): Fragment = {
+      val sql = renderInsInto(ins.astData)
+      Fragment[In](sql, ins.in, None)(param.write)
     }
 
     def toUpdate(implicit param: Param[In]): Update0 = toFragment.update

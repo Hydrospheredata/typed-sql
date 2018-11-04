@@ -37,4 +37,6 @@ object ast {
 
   case class Set(col: Col)
   case class Update(table: String, sets: List[Set], where: Option[WhereCond])
+
+  case class InsertInto(table: String, columns: List[Col])
 }

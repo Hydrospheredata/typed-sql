@@ -31,9 +31,9 @@ case class DTRow3(
 
 class TestWithDoobie extends FunSpec {
 
-  val table1 = Table.of[DTRow1].primaryKey('a).name('test)
-  val table2 = Table.of[DTRow2].name('yoyo)
-  val table3 = Table.of[DTRow3].name('haha)
+  val table1 = Table.of[DTRow1].autoColumn('a).name('test)
+  val table2 = Table.of[DTRow2].autoColumn('f1).name('yoyo)
+  val table3 = Table.of[DTRow3].autoColumn('x).name('haha)
 
   val a1 = table1.col('a)
   val b1 = table1.col('b)
@@ -65,22 +65,22 @@ class TestWithDoobie extends FunSpec {
     (0 to 3).foreach(i => {
       val bv = "b" * i
       val cv = s"c_$i"
-      val x = sql"INSERT INTO test (b, c) VALUES ($bv, $cv)"
-      x.update.run.transact(xa).unsafeRunSync()
+      val x = insert.into(table1).values(bv, cv)
+      x.toUpdate.run.transact(xa).unsafeRunSync()
     })
 
     (0 to 3).foreach(i => {
       val bv = "b" * i
       val cv = s"c_$i"
-      val x = sql"INSERT INTO yoyo (f2, f3) VALUES ($bv, $cv)"
-      x.update.run.transact(xa).unsafeRunSync()
+      val x = insert.into(table2).values(bv, cv)
+      x.toUpdate.run.transact(xa).unsafeRunSync()
     })
 
     (0 to 2).foreach(i => {
       val bv = "b" * i
       val cv = s"c_$i"
-      val x = sql"INSERT INTO haha (y, z) VALUES ($bv, $cv)"
-      x.update.run.transact(xa).unsafeRunSync()
+      val x = insert.into(table3).values(bv, cv)
+      x.toUpdate.run.transact(xa).unsafeRunSync()
     })
 
     val sAll1 = select(*).from(table1)

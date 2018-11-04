@@ -121,11 +121,11 @@ class TestWithDoobie extends FunSpec {
     val res6 = sAll6.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res6)
 
-    val del1 = delete from table1 where a1 ==== 1
+    val del1 = delete from table1 where a1 === 1
     val delR = del1.toUpdate.run.transact(xa).unsafeRunSync()
     println(delR)
 
-    val upd1 = update(table1).set(b1 := "UPDATED B").where(a1 ==== 2)
+    val upd1 = update(table1).set(b1 := "UPDATED B").where(a1 === 2)
     val updR = upd1.toUpdate.run.transact(xa).unsafeRunSync()
     println(updR)
   }

@@ -42,7 +42,7 @@ select(*).from(table)
 select(*).from(table).where(a === 1)
 select(a, b).from(table)
 
-update(table).set(b := "Upd B").where(a ==== 1)
+update(table).set(b := "Upd B").where(a === 1)
 
 delete.from(table).where(a === 1)
 ```
@@ -55,7 +55,15 @@ val q0: Query0[Row] = select(*).from(table).toQuery
 val u0: Update0 = delete.from(table).where(a === 1).toUpdate
 ```
 
-#### More select examples:
+#### More examples:
+Where:
+```scala
+select(*).from(table).where(a > 1 and a < 5)
+select(*).from(table).where(a >= 1 and a =< 5)
+select(*).from(table).where(a === 1 or a === 2)
+select(*).from(table).where(b like "BBB%")
+```
+
 Order By:
 ```scala
 // SELECT * FROM TEST ORDER BY test.a ASC

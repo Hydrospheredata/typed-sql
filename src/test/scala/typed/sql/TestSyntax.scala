@@ -24,7 +24,7 @@ class TestSyntax extends FunSpec with Matchers{
 
     it("delete where") {
       val exp = ast.Delete("my_table", Some(ast.WhereEq(ast.Col("my_table", "a"))))
-      delete.from(table1).where(a1 ==== 2).astData shouldBe exp
+      delete.from(table1).where(a1 === 2).astData shouldBe exp
     }
   }
 
@@ -40,7 +40,7 @@ class TestSyntax extends FunSpec with Matchers{
     }
 
     it("with where") {
-      val x = update(table1).set(b1 := "yoyo").where(a1 ==== 4)
+      val x = update(table1).set(b1 := "yoyo").where(a1 === 4)
       x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), Some(ast.WhereEq(ast.Col("my_table", "a"))))
     }
   }
@@ -58,8 +58,63 @@ class TestSyntax extends FunSpec with Matchers{
     }
   }
 
+  describe("where") {
+
+    it("eq") {
+      val x = select(a1).from(table1).where(a1 === 2)
+      x.astData.where.get shouldBe ast.WhereEq(ast.Col("my_table", "a"))
+    }
+
+    it("gt") {
+      val x = select(a1).from(table1).where(a1 > 2)
+      x.astData.where.get shouldBe ast.Gt(ast.Col("my_table", "a"))
+    }
+
+    it("gt or eq") {
+      val x = select(a1).from(table1).where(a1 >= 2)
+      x.astData.where.get shouldBe ast.GtOrEq(ast.Col("my_table", "a"))
+    }
+
+    it("less") {
+      val x = select(a1).from(table1).where(a1 < 2)
+      x.astData.where.get shouldBe ast.Less(ast.Col("my_table", "a"))
+    }
+
+    it("less or eq") {
+      val x = select(a1).from(table1).where(a1 =< 2)
+      x.astData.where.get shouldBe ast.LessOrEq(ast.Col("my_table", "a"))
+    }
+
+    it("like") {
+      val x = select(a1).from(table1).where(b1 like "BBB%")
+      x.astData.where.get shouldBe ast.Like(ast.Col("my_table", "b"))
+    }
+
+    it("and") {
+      val x = select(a1).from(table1).where(a1 === 2 and a1 === 3)
+      x.astData.where.get shouldBe ast.And(ast.WhereEq(ast.Col("my_table", "a")), ast.WhereEq(ast.Col("my_table", "a")))
+    }
+
+    it("or") {
+      val x = select(a1).from(table1).where(a1 === 2 or a1 === 3)
+      x.astData.where.get shouldBe ast.Or(ast.WhereEq(ast.Col("my_table", "a")), ast.WhereEq(ast.Col("my_table", "a")))
+    }
+
+    it("and and") {
+      val x = select(a1).from(table1).where(a1 === 2 and a1 === 3 and a1 === 4)
+      x.astData.where.get shouldBe
+        ast.And(
+          ast.And(
+            ast.WhereEq(ast.Col("my_table", "a")),
+            ast.WhereEq(ast.Col("my_table", "a"))
+          ),
+          ast.WhereEq(ast.Col("my_table", "a"))
+        )
+    }
+  }
 
   describe("select") {
+
 
     describe("order by ") {
       it("order by default") {

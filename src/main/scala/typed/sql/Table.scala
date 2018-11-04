@@ -1,6 +1,5 @@
 package typed.sql
 
-import poc.internal.FieldNames
 import shapeless._
 import shapeless.ops.record.Selector
 import typed.sql.internal.RemoveFields

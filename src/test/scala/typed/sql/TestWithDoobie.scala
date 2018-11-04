@@ -45,7 +45,7 @@ class TestWithDoobie extends FunSpec {
 
   import typed.sql.toDoobie._
 
-  it("select") {
+  it("h2 queries") {
 
     implicit def contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 

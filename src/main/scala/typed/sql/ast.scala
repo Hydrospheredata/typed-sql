@@ -29,9 +29,19 @@ object ast {
   final case class And(c1: WhereCond, c2: WhereCond) extends WhereCond
   final case class Or(c1: WhereCond, c2: WhereCond) extends WhereCond
 
-  case class From(table: String, joins: List[Join])
-  case class Select[Out](cols: List[Col], from: From, where: Option[WhereCond])
+  sealed trait SortOrder
+  case object ASC extends SortOrder
+  case object DESC extends SortOrder
+  case class OrderBy(values: List[(Col, SortOrder)])
 
+  case class From(table: String, joins: List[Join])
+
+  case class Select[Out](
+    cols: List[Col],
+    from: From,
+    where: Option[WhereCond],
+    orderBy: Option[OrderBy]
+  )
 
   case class Delete(table: String, where: Option[WhereCond])
 

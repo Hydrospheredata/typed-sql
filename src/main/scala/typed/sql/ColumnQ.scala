@@ -25,9 +25,16 @@ case class Column[K, V, T] private[sql](k: K, t: T) extends CLN[T] { self =>
   def `<==>`[K2, T2](c2: Column[K2, V, T2]): JoinCond.Eq[K, V, T, K2, T2] = JoinCond.Eq(self, c2)
 
   def `:=`(v: V): Assign[K, V, T] = Assign(v)
+
+  def ASC: ASC[K, V, T] = new ASC[K, V, T]
+  def DESC: DESC[K, V, T] = new DESC[K, V, T]
 }
 
 case class Assign[K, V, T](v: V)
+
+sealed trait SortOrder
+final class ASC[K, V, T] extends SortOrder
+final class DESC[K, V, T] extends SortOrder
 
 trait ColumnSyntax {
 

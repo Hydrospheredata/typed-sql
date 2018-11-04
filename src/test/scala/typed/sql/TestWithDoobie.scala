@@ -112,6 +112,10 @@ class TestWithDoobie extends FunSpec {
     val res4 = sAll4.toQuery.to[List].transact(xa).unsafeRunSync()
     println(res4)
 
+    val sAll5 = select(*).from(table1).orderBy(a1.DESC)
+    println(sAll5.toFragment)
+    val res5 = sAll5.toQuery.to[List].transact(xa).unsafeRunSync()
+    println(res5)
 
     val del1 = delete from table1 where a1 ==== 1
     val delR = del1.toUpdate.run.transact(xa).unsafeRunSync()

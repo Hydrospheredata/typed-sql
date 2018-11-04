@@ -2,7 +2,7 @@ package typed.sql
 
 import shapeless._
 import shapeless.ops.adjoin.Adjoin
-import typed.sql.internal.WhereInfer
+import typed.sql.internal.{OrderByInfer, WhereInfer}
 import typed.sql.prefixes._
 
 object syntax extends ColumnSyntax {
@@ -57,6 +57,22 @@ object syntax extends ColumnSyntax {
         def astData: ast.Update = upd.astData.copy(where = Some(inf.mkAst(c)))
         def in: O = adjoin(upd.in :: inf.out(c) :: HNil)
       }
+  }
+
+  implicit class OrderBySelectSyntax[S <: FSH, O, In](sel: Selection[S, O, In]) {
+
+    object orderBy extends ProductArgs {
+      def applyProduct[C <: HList](c: C)(implicit inf: OrderByInfer[S, C]): Selection[S, O, In] = {
+        new Selection[S, O, In] {
+          type WhereFlag = sel.WhereFlag
+          val astData: ast.Select[O] = {
+            val ord = ast.OrderBy(inf.columns)
+            sel.astData.copy(orderBy = Some(ord))
+          }
+          val in: In = sel.in
+        }
+      }
+    }
   }
 
   implicit class JoinSyntax[A <: FSH](shape: A) {

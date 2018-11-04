@@ -57,4 +57,67 @@ class TestSyntax extends FunSpec with Matchers{
       x.in shouldBe ("b_value" :: "c_value" :: HNil)
     }
   }
+
+
+  describe("select") {
+
+    describe("order by ") {
+      it("order by default") {
+        val x = select(a1).from(table1).orderBy(b1)
+        val data = x.astData
+
+        val exp = ast.Select(
+          List(ast.Col("my_table", "a")),
+          ast.From("my_table", List.empty),
+          None,
+          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.ASC)))
+        )
+        data shouldBe exp
+      }
+
+      it("order by asc") {
+        val x = select(a1).from(table1).orderBy(b1.ASC)
+        val data = x.astData
+
+        val exp = ast.Select(
+          List(ast.Col("my_table", "a")),
+          ast.From("my_table", List.empty),
+          None,
+          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.ASC)))
+        )
+        data shouldBe exp
+      }
+
+      it("order by desc") {
+        val x = select(a1).from(table1).orderBy(b1.DESC)
+        val data = x.astData
+
+        val exp = ast.Select(
+          List(ast.Col("my_table", "a")),
+          ast.From("my_table", List.empty),
+          None,
+          Some(ast.OrderBy(List(ast.Col("my_table", "b") -> ast.DESC)))
+        )
+        data shouldBe exp
+      }
+
+      it("order by mult") {
+        val x = select(a1).from(table1).orderBy(a1, b1)
+        val data = x.astData
+
+        val exp = ast.Select(
+          List(ast.Col("my_table", "a")),
+          ast.From("my_table", List.empty),
+          None,
+          Some(ast.OrderBy(
+            List(
+              ast.Col("my_table", "a") -> ast.ASC,
+              ast.Col("my_table", "b") -> ast.ASC
+            )
+          ))
+        )
+        data shouldBe exp
+      }
+    }
+  }
 }

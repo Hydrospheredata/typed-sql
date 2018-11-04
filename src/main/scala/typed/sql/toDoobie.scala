@@ -11,6 +11,18 @@ object toDoobie {
 
 
   private def renderSel(s: ast.Select[_]): String = {
+
+    def renderOrderBy(orderBy: ast.OrderBy): String = {
+      val body = orderBy.values.map({case (col, ord) => {
+        val o = ord match {
+          case ast.DESC => "DESC"
+          case ast.ASC => "ASC"
+        }
+        s"${col.table}.${col.name} $o"
+      }}).mkString(",")
+      s"ORDER BY $body"
+    }
+
     def renderWCOnd(wc: ast.WhereCond): String = wc match {
       case ast.WhereEq(col) => s"${col.table}.${col.name} = ?"
       case ast.Less(col) => s"${col.table}.${col.name} < ?"
@@ -38,7 +50,8 @@ object toDoobie {
     val joins = s.from.joins.map(joinRender).mkString(" ")
     val from = s.from.table
     val whereR = s.where.map(c => " WHERE " + renderWCOnd(c)).getOrElse("")
-    s"SELECT $cols FROM $from $joins" + whereR
+    val order = s.orderBy.map(o => renderOrderBy(o)).getOrElse("")
+    s"SELECT $cols FROM $from $joins" + whereR + order
   }
 
   private def renderDel(d: ast.Delete): String = {

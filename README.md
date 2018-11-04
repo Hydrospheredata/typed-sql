@@ -1,7 +1,7 @@
 ### Typed-sql
 
 This is a frontend library for writing [doobie](https://github.com/tpolecat/doobie) queries.
-It's goal to provide a typesafe-dsl for it and to provide the closest to the plain SQL language.
+Its goal to provide a typesafe-dsl for it and to provide the closest to the plain SQL language.
 
 ### Usage
 Import:
@@ -32,7 +32,7 @@ val c = table.col('c)
 ```
 
 Now it's time for to write queries.
-Exmaples:
+Examples:
 ```scala
 insert.into(table).values(1, "b", "c")
 // or if `a` column is a primary key and has serial type

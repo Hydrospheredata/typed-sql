@@ -62,6 +62,7 @@ select(*).from(table).where(a > 1 and a < 5)
 select(*).from(table).where(a >= 1 and a =< 5)
 select(*).from(table).where(a === 1 or a === 2)
 select(*).from(table).where(b like "BBB%")
+select(*).from(table).where(a.in(NonEmptyList.of(1,2,3)))
 ```
 
 Order By:

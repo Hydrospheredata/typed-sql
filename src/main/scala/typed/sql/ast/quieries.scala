@@ -25,6 +25,7 @@ final case class LessOrEq(col: Col) extends WhereCond
 final case class Gt(col: Col) extends WhereCond
 final case class GtOrEq(col: Col) extends WhereCond
 final case class Like(col: Col) extends WhereCond
+final case class In(col: Col, size: Int) extends WhereCond
 final case class And(c1: WhereCond, c2: WhereCond) extends WhereCond
 final case class Or(c1: WhereCond, c2: WhereCond) extends WhereCond
 

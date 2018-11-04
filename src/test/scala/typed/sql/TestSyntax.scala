@@ -1,5 +1,6 @@
 package typed.sql
 
+import cats.data.NonEmptyList
 import org.scalatest.{FunSpec, Matchers}
 import shapeless._
 import shapeless.test.illTyped
@@ -110,6 +111,11 @@ class TestSyntax extends FunSpec with Matchers{
           ),
           ast.WhereEq(ast.Col("my_table", "a"))
         )
+    }
+
+    it("in") {
+      val x = select(a1).from(table1).where(a1 in NonEmptyList.of(1, 2, 3))
+      x.astData.where.get shouldBe ast.In(ast.Col("my_table", "a"), 3)
     }
   }
 

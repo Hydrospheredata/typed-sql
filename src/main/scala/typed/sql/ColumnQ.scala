@@ -1,6 +1,7 @@
 package typed.sql
 
 import WhereClause._
+import cats.data.NonEmptyList
 
 sealed trait ColumnQuery
 
@@ -21,6 +22,7 @@ case class Column[K, V, T] private[sql](k: K, t: T) extends CLN[T] { self =>
   def `<`(v: V): Less[K, V, T] = Less(v)
   def `=<`(v: V): LessOrEq[K, V, T] = LessOrEq(v)
   def like(v: V)(implicit ev: V =:= String): Like[K, T] = Like(v)
+  def in(values: NonEmptyList[V]): In[K, V, T] = In(values.toList)
 
   def `<==>`[K2, T2](c2: Column[K2, V, T2]): JoinCond.Eq[K, V, T, K2, T2] = JoinCond.Eq(self, c2)
 

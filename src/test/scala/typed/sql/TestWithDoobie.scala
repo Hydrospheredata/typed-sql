@@ -1,5 +1,6 @@
 package typed.sql
 
+import cats.data.NonEmptyList
 import cats.effect._
 import doobie.util.transactor.Transactor
 import org.scalatest.FunSpec
@@ -128,5 +129,10 @@ class TestWithDoobie extends FunSpec {
     val upd1 = update(table1).set(b1 := "UPDATED B").where(a1 === 2)
     val updR = upd1.toUpdate.run.transact(xa).unsafeRunSync()
     println(updR)
+
+    val sAll7 = select(*).from(table1).where((c1.like("c1_%")).and(a1.in(NonEmptyList.of(2, 4))))
+    println(sAll7.toFragment)
+    val res7 = sAll7.toQuery.to[List].transact(xa).unsafeRunSync()
+    println(res7)
   }
 }

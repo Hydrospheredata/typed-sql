@@ -1,9 +1,12 @@
 package typed.sql.internal
 
+import cats.data.NonEmptyList
 import shapeless._
 import shapeless.ops.adjoin.Adjoin
 import typed.sql.internal.FSHOps.IsFieldOf
 import typed.sql.{FSH, WhereClause, ast}
+
+import scala.reflect.ClassTag
 
 trait WhereInfer[A <: FSH, C] {
   type Out
@@ -102,6 +105,22 @@ object WhereInfer {
       type Out = String :: HNil
       def mkAst(c: WhereClause.Like[K, T]): ast.WhereCond = ast.Like(ast.Col(wt1.value.name, wt2.value.name))
       def out(c: WhereClause.Like[K, T]): String :: HNil = c.v :: HNil
+    }
+  }
+
+  implicit def forIn[A <: FSH, K, V, T](
+    implicit
+    wt1: Witness.Aux[T],
+    ev1: T <:< Symbol,
+    wt2: Witness.Aux[K],
+    ev2: K <:< Symbol,
+    evev: IsFieldOf[A, T],
+    ct: ClassTag[V]
+  ): Aux[A, WhereClause.In[K, V, T], List[V] :: HNil] = {
+    new WhereInfer[A, WhereClause.In[K, V, T]] {
+      type Out = List[V] :: HNil
+      def mkAst(c: WhereClause.In[K, V, T]): ast.WhereCond = ast.In(ast.Col(wt1.value.name, wt2.value.name), c.v.size)
+      def out(c: WhereClause.In[K, V, T]): List[V] :: HNil = c.v :: HNil
     }
   }
 

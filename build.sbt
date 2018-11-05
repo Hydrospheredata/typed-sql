@@ -13,6 +13,6 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-h2"        % "0.6.0" % "test",
   "org.tpolecat" %% "doobie-hikari"    % "0.6.0" % "test",
   "org.tpolecat" %% "doobie-postgres"  % "0.6.0" % "test",
-  "org.scalatest"%% "scalatest"        %  "3.0.3" % "test",
+  "org.scalatest"%% "scalatest"        % "3.0.3" % "test",
   "org.tpolecat" %% "doobie-scalatest" % "0.6.0" % "test"
 )

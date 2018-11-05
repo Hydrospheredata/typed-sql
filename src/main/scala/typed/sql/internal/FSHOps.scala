@@ -146,7 +146,7 @@ object FSHOps {
       wt3: Witness.Aux[K2],
       ev3: K2 <:< Symbol,
       wt4: Witness.Aux[T2],
-      ev4: T2 <:< Symbol,
+      ev4: T2 <:< Symbol
     ): JoinCondInfer[JoinCond.Eq[K1, v, T1, K2, T2]] = {
       new JoinCondInfer[JoinCond.Eq[K1, v, T1, K2, T2]] {
         override def mkAst(): ast.JoinCond =

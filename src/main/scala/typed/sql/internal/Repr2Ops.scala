@@ -30,7 +30,7 @@ object Repr2Ops {
       wt1: Witness.Aux[K],
       ev1: K <:< Symbol,
       wt2: Witness.Aux[N],
-      ev2: N <:< Symbol,
+      ev2: N <:< Symbol
     ): Aux[R, Assign[K, V, N] :: T, V :: Out1] =
       new InferUpdateSet[R, Assign[K, V, N] :: T] {
         type Out = V :: Out1

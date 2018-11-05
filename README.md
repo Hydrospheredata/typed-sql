@@ -4,6 +4,13 @@ This is a frontend library for writing [doobie](https://github.com/tpolecat/doob
 Its goal to provide a typesafe-dsl for it and keep its constructs as close as it possible to the plain SQL language.
 
 ### Usage
+In addition to [doobie dependencies]() add the following one to your build.sbt:
+```scala
+libraryDependencies += Seq( 
+  "io.hydrosphere" %% "typed-sql" % "0.1.0"
+)
+```
+
 Import:
 ```scala
 import doobie._

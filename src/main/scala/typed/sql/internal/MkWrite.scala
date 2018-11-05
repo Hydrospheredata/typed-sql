@@ -1,10 +1,8 @@
-package typed.sql
+package typed.sql.internal
 
-import cats.Reducible
 import doobie.enum.Nullability.NoNulls
-import doobie.util.{Put, Write}
-import doobie.util.fragment.Fragment
 import doobie.util.param.Param
+import doobie.util.{Put, Write}
 import shapeless._
 
 trait MkWrite[A] {

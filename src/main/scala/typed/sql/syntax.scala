@@ -13,8 +13,8 @@ object syntax extends ColumnSyntax {
 
   object delete {
 
-    def from[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): Deletion[From[TRepr[A, N, Rs, Ru]], HNil] =
-      Deletion.create(From(table.repr), table.name)
+    def from[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): Delete[From[TRepr[A, N, Rs, Ru]], HNil] =
+      Delete.create(From(table.repr), table.name)
 
   }
 
@@ -27,43 +27,43 @@ object syntax extends ColumnSyntax {
 
   val `*` = All
 
-  implicit class WhereSelectSyntax[S <: FSH, O](selection: Selection[S, O, HNil]) {
+  implicit class WhereSelectSyntax[S <: FSH, O](selection: Select[S, O, HNil]) {
 
-    def where[C <: WhereClause, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Selection[S, O, In0] =
-      new Selection[S, O, In0] {
-        type WhereFlag = Selection.WhereDefined.type
+    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Select[S, O, In0] =
+      new Select[S, O, In0] {
+        type WhereFlag = Select.WhereDefined.type
         def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
         def in: In0 = inf.out(c)
       }
   }
 
-  implicit class WhereDeleteSyntax[S <: FSH, O](deletion: Deletion[S, O]) {
+  implicit class WhereDeleteSyntax[S <: FSH, O](deletion: Delete[S, O]) {
 
-    def where[C <: WhereClause, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Deletion[S, In0] =
-      new Deletion[S, In0] {
+    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Delete[S, In0] =
+      new Delete[S, In0] {
         def astData: ast.Delete = deletion.astData.copy(where = Some(inf.mkAst(c)))
         def in: In0 = inf.out(c)
       }
   }
 
-  implicit class WhereUpdateSyntax[S <: FSH, In1](upd: Updation[S, In1]) {
+  implicit class WhereUpdateSyntax[S <: FSH, In1](upd: Update[S, In1]) {
 
-    def where[C <: WhereClause, In0 <: HList, O <: HList](c: C)(
+    def where[C <: WhereCond, In0 <: HList, O <: HList](c: C)(
       implicit
       inf: WhereInfer.Aux[S, C, In0],
       adjoin: Adjoin.Aux[In1 :: In0 :: HNil, O]
-    ): Updation[S, O] =
-      new Updation[S, O] {
+    ): Update[S, O] =
+      new Update[S, O] {
         def astData: ast.Update = upd.astData.copy(where = Some(inf.mkAst(c)))
         def in: O = adjoin(upd.in :: inf.out(c) :: HNil)
       }
   }
 
-  implicit class OrderBySelectSyntax[S <: FSH, O, In](sel: Selection[S, O, In]) {
+  implicit class OrderBySelectSyntax[S <: FSH, O, In](sel: Select[S, O, In]) {
 
     object orderBy extends ProductArgs {
-      def applyProduct[C <: HList](c: C)(implicit inf: OrderByInfer[S, C]): Selection[S, O, In] = {
-        new Selection[S, O, In] {
+      def applyProduct[C <: HList](c: C)(implicit inf: OrderByInfer[S, C]): Select[S, O, In] = {
+        new Select[S, O, In] {
           type WhereFlag = sel.WhereFlag
           val astData: ast.Select[O] = {
             val ord = ast.OrderBy(inf.columns)
@@ -75,10 +75,10 @@ object syntax extends ColumnSyntax {
     }
   }
 
-  implicit class LimitOffsetSyntax[S <: FSH, O, In](sel: Selection[S, O, In]) {
+  implicit class LimitOffsetSyntax[S <: FSH, O, In](sel: Select[S, O, In]) {
 
-    def limit[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Selection[S, O, J] =
-        new Selection[S, O, J] {
+    def limit[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Select[S, O, J] =
+        new Select[S, O, J] {
           type WhereFlag = sel.WhereFlag
           val astData: ast.Select[O] = {
             sel.astData.copy(limit = Some(i))
@@ -86,8 +86,8 @@ object syntax extends ColumnSyntax {
           val in: J = adjoin(sel.in :: i :: HNil)
         }
 
-    def offset[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Selection[S, O, J] =
-      new Selection[S, O, J] {
+    def offset[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Select[S, O, J] =
+      new Select[S, O, J] {
         type WhereFlag = sel.WhereFlag
         val astData: ast.Select[O] = {
           sel.astData.copy(offset = Some(i))

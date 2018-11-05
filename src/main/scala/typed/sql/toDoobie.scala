@@ -6,6 +6,7 @@ import doobie.util.param.Param
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 import shapeless.HNil
+import typed.sql.internal.MkWrite
 
 object toDoobie {
 
@@ -100,7 +101,7 @@ object toDoobie {
     s"INSERT INTO ${ins.table} $columns VALUES $values"
   }
 
-  implicit class WrapSelection[S <: FSH, Out, In](sel: Selection[S, Out, In]) {
+  implicit class WrapSelection[S <: FSH, Out, In](sel: Select[S, Out, In]) {
 
     def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
       val sql = renderSel(sel.astData)
@@ -110,7 +111,7 @@ object toDoobie {
     def toQuery(implicit mkWrite: MkWrite[In], read: Read[Out]): Query0[Out] = toFragment.query[Out](read)
   }
 
-  implicit class WrapDeletion[S <: FSH, In](del: Deletion[S, In]) {
+  implicit class WrapDeletion[S <: FSH, In](del: Delete[S, In]) {
 
     def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
       val sql = renderDel(del.astData)
@@ -120,7 +121,7 @@ object toDoobie {
     def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update
   }
 
-  implicit class WrapUpdation[S <: FSH, In](upd: Updation[S, In]) {
+  implicit class WrapUpdation[S <: FSH, In](upd: Update[S, In]) {
 
     def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
       val sql = renderUpd(upd.astData)

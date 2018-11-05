@@ -1,6 +1,6 @@
 package typed.sql
 
-import WhereClause._
+import WhereCond._
 import cats.data.NonEmptyList
 
 sealed trait ColumnQuery
@@ -40,8 +40,8 @@ final class DESC[K, V, T] extends SortOrder
 
 trait ColumnSyntax {
 
-  implicit class CmpOpChain[A <: WhereClause](a: A) {
-    def and[B <: WhereClause](b: B): And[A, B] = And(a, b)
-    def or[B <: WhereClause](b: B): Or[A, B] = Or(a, b)
+  implicit class CmpOpChain[A <: WhereCond](a: A) {
+    def and[B <: WhereCond](b: B): And[A, B] = And(a, b)
+    def or[B <: WhereCond](b: B): Or[A, B] = Or(a, b)
   }
 }

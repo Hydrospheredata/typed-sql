@@ -1,7 +1,7 @@
 ### Typed-sql
 
 This is a frontend library for writing [doobie](https://github.com/tpolecat/doobie) queries.
-Its goal to provide a typesafe-dsl for it and to provide the closest to the plain SQL language.
+Its goal to provide a typesafe-dsl for it and keep its constructs as close as it possible to the plain SQL language.
 
 ### Usage
 Import:

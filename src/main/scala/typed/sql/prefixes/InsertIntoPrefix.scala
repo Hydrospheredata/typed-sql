@@ -7,19 +7,15 @@ import typed.sql.internal.InsertValuesInfer
 
 class InsertIntoPrefix[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]) {
 
-  object values extends ProductArgs {
-
-    def applyProduct[In <: HList](vs: In)(
-      implicit
-      inferInsertValues: InsertValuesInfer[Ru, In]
-    ): Insert[In] = {
-      //TODO columns need table only in selects
-      val n = table.name
-      val cols = inferInsertValues.columns.map(v => ast.Col(n, v))
-      val in = vs
-      Insert(ast.InsertInto(n, cols), in)
-    }
-
+  def values[In, In2 <: HList](vs: In)(
+    implicit
+    gen: Generic.Aux[In, In2],
+    inferInsertValues: InsertValuesInfer[Ru, In2]
+  ): Insert[In2] = {
+    val n = table.name
+    val cols = inferInsertValues.columns.map(v => ast.Col(n, v))
+    val in = gen.to(vs)
+    Insert(ast.InsertInto(n, cols), in)
   }
 
 }

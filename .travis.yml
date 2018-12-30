@@ -1,0 +1,13 @@
+language: scala
+
+before_install:
+  - export TRAVIS_BRANCH=`echo $TRAVIS_BRANCH | sed 's%[/_]%-%g'`
+
+script:
+  - sbt test
+
+cache:
+  directories:
+    - $HOME/.ivy2
+    - $HOME/.sbt
+    - $HOME/.coursier

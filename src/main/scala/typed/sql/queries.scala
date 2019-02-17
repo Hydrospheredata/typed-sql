@@ -9,8 +9,8 @@ trait Delete[S <: FSH, In] {
 
 object Delete {
 
-  def create[A, N, Rs <: HList, Ru <: HList](from: From[TRepr[A, N, Rs, Ru]], tableName: String): Delete[From[TRepr[A, N, Rs, Ru]], HNil] = {
-    new Delete[From[TRepr[A, N, Rs, Ru]], HNil] {
+  def create[A, Rs, Ru](from: From[Table[A, Rs, Ru]], tableName: String): Delete[From[Table[A, Rs, Ru]], HNil] = {
+    new Delete[From[Table[A, Rs, Ru]], HNil] {
       val astData: ast.Delete = ast.Delete(tableName, None)
       val in: HNil = HNil
     }

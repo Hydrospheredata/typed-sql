@@ -6,7 +6,7 @@ import typed.sql.{Assign, ast}
 
 object Repr2Ops {
 
-  trait InferUpdateSet[R <: HList, In <: HList] {
+  trait InferUpdateSet[R, In] {
     type Out
     def mkAst: List[ast.Set]
     def out(in: In): Out
@@ -14,7 +14,7 @@ object Repr2Ops {
 
   object InferUpdateSet {
 
-    type Aux[R <: HList, In <: HList, Out0] = InferUpdateSet[R, In] { type Out = Out0 }
+    type Aux[R, In, Out0] = InferUpdateSet[R, In] { type Out = Out0 }
 
     implicit def hnil[R <: HList]: Aux[R, HNil, HNil] =
       new InferUpdateSet[R, HNil] {

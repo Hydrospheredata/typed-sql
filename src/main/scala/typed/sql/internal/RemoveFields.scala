@@ -26,10 +26,7 @@ object RemoveFields extends LowPrioRemoveFields  {
     implicit
     remover: Remover.Aux[A, H, (v, ROut)],
     next: RemoveFields.Aux[ROut, T2, TOut]
-  ): Aux[A, H :: T2, TOut] = {
-//    println(s"DROP ${wt.value.name}")
-    null
-  }
+  ): Aux[A, H :: T2, TOut] = null
 
 
 }

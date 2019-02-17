@@ -2,7 +2,7 @@ package typed.sql
 
 import shapeless._
 import shapeless.ops.adjoin.Adjoin
-import typed.sql.internal.{OrderByInfer, WhereInfer}
+import typed.sql.internal.{OrderByInfer, WhereAst}
 import typed.sql.prefixes._
 
 object syntax extends ColumnSyntax {
@@ -12,37 +12,34 @@ object syntax extends ColumnSyntax {
   }
 
   object delete {
-
-    def from[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): Delete[From[TRepr[A, N, Rs, Ru]], HNil] =
-      Delete.create(From(table.repr), table.name)
-
+    def from[A, Rs, Ru](table: Table[A, Rs, Ru]): Delete[From[Table[A, Rs, Ru]], HNil] = Delete.create(From(table), table.name)
   }
 
-  def update[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): UpdationPrefix[A, N, Rs, Ru] = new UpdationPrefix(table)
+  def update[A, Rs, Ru](table: Table[A, Rs, Ru]): UpdationPrefix[A, Rs, Ru] = new UpdationPrefix(table)
 
   object insert {
 
-    def into[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]): InsertIntoPrefix[A, N, Rs, Ru] = new InsertIntoPrefix(table)
+    def into[A, Rs <: HList, Ru <: HList](table: Table[A, Rs, Ru]): InsertIntoPrefix[A, Rs, Ru] = new InsertIntoPrefix(table)
   }
 
   val `*` = All
 
   implicit class WhereSelectSyntax[S <: FSH, O](selection: Select[S, O, HNil]) {
 
-    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Select[S, O, In0] =
+    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Select[S, O, In0] =
       new Select[S, O, In0] {
         type WhereFlag = Select.WhereDefined.type
         def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
-        def in: In0 = inf.out(c)
+        def in: In0 = inf.params(c)
       }
   }
 
   implicit class WhereDeleteSyntax[S <: FSH, O](deletion: Delete[S, O]) {
 
-    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereInfer.Aux[S, C, In0]): Delete[S, In0] =
+    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Delete[S, In0] =
       new Delete[S, In0] {
         def astData: ast.Delete = deletion.astData.copy(where = Some(inf.mkAst(c)))
-        def in: In0 = inf.out(c)
+        def in: In0 = inf.params(c)
       }
   }
 
@@ -50,12 +47,12 @@ object syntax extends ColumnSyntax {
 
     def where[C <: WhereCond, In0 <: HList, O <: HList](c: C)(
       implicit
-      inf: WhereInfer.Aux[S, C, In0],
+      inf: WhereAst.Aux[S, C, In0],
       adjoin: Adjoin.Aux[In1 :: In0 :: HNil, O]
     ): Update[S, O] =
       new Update[S, O] {
         def astData: ast.Update = upd.astData.copy(where = Some(inf.mkAst(c)))
-        def in: O = adjoin(upd.in :: inf.out(c) :: HNil)
+        def in: O = adjoin(upd.in :: inf.params(c) :: HNil)
       }
   }
 
@@ -96,19 +93,19 @@ object syntax extends ColumnSyntax {
       }
   }
 
-  implicit class JoinSyntax[A <: FSH](shape: A) {
-
-    def innerJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): IJPrefix[A, S2, N2, Rs2, ru] =
-      new IJPrefix(shape, From(t.repr))
-
-    def leftJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): LJPrefix[A, S2, N2, Rs2, ru] =
-      new LJPrefix(shape, From(t.repr))
-
-    def rightJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): RJPrefix[A, S2, N2, Rs2, ru] =
-      new RJPrefix(shape, From(t.repr))
-
-    def fullJoin[S2, N2, Rs2 <: HList, ru <: HList](t: Table[S2, N2, Rs2, ru]): FJPrefix[A, S2, N2, Rs2, ru] =
-      new FJPrefix(shape, From(t.repr))
-  }
+//  implicit class JoinSyntax[A <: FSH](shape: A) {
+//
+//    def innerJoin[S2, Rs2 <: HList, ru <: HList](t: Table[S2, Rs2, ru]): IJPrefix[A, S2, Rs2, ru] =
+//      new IJPrefix(shape, From(t.repr))
+//
+//    def leftJoin[S2, Rs2 <: HList, ru <: HList](t: Table[S2, Rs2, ru]): LJPrefix[A, S2, Rs2, ru] =
+//      new LJPrefix(shape, From(t.repr))
+//
+//    def rightJoin[S2, Rs2 <: HList, ru <: HList](t: Table[S2, Rs2, ru]): RJPrefix[A, S2, Rs2, ru] =
+//      new RJPrefix(shape, From(t.repr))
+//
+//    def fullJoin[S2, Rs2 <: HList, ru <: HList](t: Table[S2, Rs2, ru]): FJPrefix[A, S2, Rs2, ru] =
+//      new FJPrefix(shape, From(t.repr))
+//  }
 
 }

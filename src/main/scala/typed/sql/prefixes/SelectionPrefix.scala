@@ -11,9 +11,9 @@ case class SelectionPrefix[Q](query: Q) {
     inf: SelectInfer.Aux[S, Q, O]
   ): Select[S, O, HNil] = Select.create(inf.mkAst(shape))
 
-  def from[A, N, Rs <: HList, Ru <: HList, O](table: Table[A, N, Rs, Ru])(
+  def from[A, Rs <: HList, Ru <: HList, O](table: Table[A, Rs, Ru])(
     implicit
-    inf: SelectInfer.Aux[From[TRepr[A, N, Rs, Ru]], Q, O]
-  ): Select[From[TRepr[A, N, Rs, Ru]], O, HNil] = Select.create(inf.mkAst(From(table.repr)))
+    inf: SelectInfer.Aux[From[Table[A, Rs, Ru]], Q, O]
+  ): Select[From[Table[A, Rs, Ru]], O, HNil] = Select.create(inf.mkAst(From(table)))
 
 }

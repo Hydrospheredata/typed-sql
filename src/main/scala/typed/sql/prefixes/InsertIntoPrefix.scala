@@ -5,7 +5,7 @@ import shapeless.ops.record.Values
 import typed.sql.{Insert, Table, ast}
 import typed.sql.internal.InsertValuesInfer
 
-class InsertIntoPrefix[A, N, Rs <: HList, Ru <: HList](table: Table[A, N, Rs, Ru]) {
+class InsertIntoPrefix[A, Rs, Ru](table: Table[A, Rs, Ru]) {
 
   def values[In, In2 <: HList](vs: In)(
     implicit

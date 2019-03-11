@@ -11,7 +11,7 @@ object FSHOps {
   trait IsFieldOf[A, C]
 
   object IsFieldOf {
-
+  
     implicit def forFrom[k, v, T]: IsFieldOf[From[T], Column[k, v, T]] = null
 
 //    implicit def forIJ[a, rs, ru, c, t](

@@ -24,13 +24,13 @@ final case class Column[K, V, T] private[sql](k: K, tableName: String) { self =>
 
   def `<==>`[K2, T2](c2: Column[K2, V, T2]): JoinCond.Eq[K, V, T, K2, T2] = JoinCond.Eq(self, c2)
 
-  def `:=`(v: V): Assign[K, V, T] = Assign(v)
+  def `:=`(v: V): Assign[Column[K, V, T], V] = Assign(self, v)
 
   def ASC: ASC[K, V, T] = new ASC[K, V, T]
   def DESC: DESC[K, V, T] = new DESC[K, V, T]
 }
 
-final case class Assign[K, V, T](v: V)
+final case class Assign[C, V](c: C, v: V)
 
 sealed trait SortOrder
 final class ASC[K, V, T] extends SortOrder

@@ -32,7 +32,7 @@ class TestSyntax extends FunSpec with Matchers{
       delete.from(table1).where(a1 === 2).astData shouldBe exp
     }
     
-    it("delete where") {
+    it("delete where ill") {
       illTyped("""
         val exp = ast.Delete("my_table", Some(ast.WhereEq(ast.Col("my_table", "a"))))
         delete.from(table1).where(`x.a1` === 2).astData shouldBe exp
@@ -40,22 +40,22 @@ class TestSyntax extends FunSpec with Matchers{
     }
   }
 
-//  describe("update") {
-//
-//    it("update column") {
-//      val x = update(table1).set(b1 := "yoyo")
-//      x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), None)
-//    }
-//
-//    it("can't update primary key") {
-//      illTyped{"update(table1).set(a1 := 42)"}
-//    }
-//
+  describe("update") {
+
+    it("update column") {
+      val x = update(table1).set(b1 := "yoyo")
+      x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), None)
+    }
+
+    it("can't update primary key") {
+      illTyped{"update(table1).set(a1 := 42)"}
+    }
+
 //    it("with where") {
 //      val x = update(table1).set(b1 := "yoyo").where(a1 === 4)
 //      x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), Some(ast.WhereEq(ast.Col("my_table", "a"))))
 //    }
-//  }
+  }
 //
 //  describe("insert into") {
 //

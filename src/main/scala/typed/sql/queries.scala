@@ -41,7 +41,7 @@ object Select {
   }
 }
 
-trait Update[S <: FSH, In] {
+trait Update[S, In] {
   def astData: ast.Update
   def in: In
 }

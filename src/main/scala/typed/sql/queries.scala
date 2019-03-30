@@ -1,21 +1,49 @@
 package typed.sql
 
-import shapeless.{HList, HNil}
+import shapeless.HNil
+import typed.sql.internal.WhereAst
 
-trait Delete[S <: FSH, In] {
-  def astData: ast.Delete
-  def in: In
+sealed trait WhereFlag
+object WhereFlag {
+  
+  sealed trait WhereUsed extends WhereFlag
+  sealed trait WhereNotUsed extends WhereFlag
+  
+  case object WhereUsed extends WhereUsed
+  case object WhereNotUsed extends WhereNotUsed
+  
 }
 
-object Delete {
+trait SQLQuery[AST <: ast.QueryAST, In] {
+  def astData: AST
+  def params: In
+}
 
-  def create[A, Rs, Ru](from: From[Table[A, Rs, Ru]], tableName: String): Delete[From[Table[A, Rs, Ru]], HNil] = {
-    new Delete[From[Table[A, Rs, Ru]], HNil] {
-      val astData: ast.Delete = ast.Delete(tableName, None)
-      val in: HNil = HNil
+trait Delete[T, In, WF] extends SQLQuery[ast.Delete, In] { self =>
+  
+  def where[C, In0](c: C)(implicit
+    ev: WF <:< WhereFlag.WhereNotUsed,
+    inf: WhereAst.Aux[T, C, In0],
+  ): Delete[T, In0, WhereFlag.WhereUsed] =
+    new Delete[T, In0, WhereFlag.WhereUsed] {
+      def astData: ast.Delete = self.astData.copy(where = Some(inf.mkAst(c)))
+      def params: In0 = inf.params(c)
     }
+  
+}
+
+trait DeleteSyntax {
+  
+  object delete {
+    def from[A, Rs, Ru](table: Table[A, Rs, Ru]): Delete[Table[A, Rs, Ru], HNil, WhereFlag.WhereNotUsed] =
+      new Delete[Table[A, Rs, Ru], HNil, WhereFlag.WhereNotUsed] {
+        def astData: ast.Delete = ast.Delete(table.name, None)
+        def params: HNil = HNil
+      }
   }
 }
+
+
 
 case class Insert[In](astData: ast.InsertInto, in: In)
 

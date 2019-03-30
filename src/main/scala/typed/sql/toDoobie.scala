@@ -111,11 +111,11 @@ object toDoobie {
     def toQuery(implicit mkWrite: MkWrite[In], read: Read[Out]): Query0[Out] = toFragment.query[Out](read)
   }
 
-  implicit class WrapDeletion[S <: FSH, In](del: Delete[S, In]) {
+  implicit class WrapDeletion[S <: FSH, In, WF](del: Delete[S, In, WF]) {
 
     def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
       val sql = renderDel(del.astData)
-      Fragment[In](sql, del.in, None)(mkWrite(del.in))
+      Fragment[In](sql, del.params, None)(mkWrite(del.params))
     }
 
     def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update

@@ -1,6 +1,8 @@
 package typed.sql.ast
 
 
+sealed trait QueryAST
+
 case class Col(table: String, name: String)
 
 sealed trait JoinCond extends Product with Serializable
@@ -43,12 +45,12 @@ case class Select[Out](
   orderBy: Option[OrderBy],
   limit: Option[Int],
   offset: Option[Int]
-)
+) extends QueryAST
 
-case class Delete(table: String, where: Option[WhereCond])
+case class Delete(table: String, where: Option[WhereCond]) extends QueryAST
 
 case class Set(col: Col)
-case class Update(table: String, sets: List[Set], where: Option[WhereCond])
+case class Update(table: String, sets: List[Set], where: Option[WhereCond]) extends QueryAST
 
-case class InsertInto(table: String, columns: List[Col])
+case class InsertInto(table: String, columns: List[Col]) extends QueryAST
 

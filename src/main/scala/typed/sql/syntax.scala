@@ -5,14 +5,10 @@ import shapeless.ops.adjoin.Adjoin
 import typed.sql.internal.{OrderByInfer, WhereAst}
 import typed.sql.prefixes._
 
-object syntax extends ColumnSyntax {
+object syntax extends ColumnSyntax with DeleteSyntax {
 
   object select extends ProductArgs {
     def applyProduct[A](query: A): SelectionPrefix[A] = SelectionPrefix(query)
-  }
-
-  object delete {
-    def from[A, Rs, Ru](table: Table[A, Rs, Ru]): Delete[From[Table[A, Rs, Ru]], HNil] = Delete.create(From(table), table.name)
   }
 
   def update[A, Rs, Ru](table: Table[A, Rs, Ru]): UpdationPrefix[A, Rs, Ru] = new UpdationPrefix(table)
@@ -30,15 +26,6 @@ object syntax extends ColumnSyntax {
       new Select[S, O, In0] {
         type WhereFlag = Select.WhereDefined.type
         def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
-        def in: In0 = inf.params(c)
-      }
-  }
-
-  implicit class WhereDeleteSyntax[S <: FSH, O](deletion: Delete[S, O]) {
-
-    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Delete[S, In0] =
-      new Delete[S, In0] {
-        def astData: ast.Delete = deletion.astData.copy(where = Some(inf.mkAst(c)))
         def in: In0 = inf.params(c)
       }
   }

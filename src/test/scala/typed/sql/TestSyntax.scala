@@ -51,10 +51,10 @@ class TestSyntax extends FunSpec with Matchers{
       illTyped{"update(table1).set(a1 := 42)"}
     }
 
-//    it("with where") {
-//      val x = update(table1).set(b1 := "yoyo").where(a1 === 4)
-//      x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), Some(ast.WhereEq(ast.Col("my_table", "a"))))
-//    }
+    it("with where") {
+      val x = update(table1).set(b1 := "yoyo").where(a1 === 4)
+      x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), Some(ast.WhereEq(ast.Col("my_table", "a"))))
+    }
   }
 //
 //  describe("insert into") {

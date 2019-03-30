@@ -1,13 +1,10 @@
 package typed.sql.internal
 
-import cats.data.NonEmptyList
 import shapeless._
-import shapeless.ops.adjoin.Adjoin
 import typed.sql.internal.FSHOps.IsFieldOf
 import typed.sql.{Column, FSH, WhereCond, ast}
 
 import scala.annotation.implicitNotFound
-import scala.reflect.ClassTag
 
 trait WhereAst[A, C] {
   type Out
@@ -17,13 +14,10 @@ trait WhereAst[A, C] {
 
 object WhereAst {
   
-  @implicitNotFound(
-    "\nCouldn't prove that where conditional is correct.\nCheck that condition uses columns that is presented in table" +
-    "\n\tCondition: ${C}\n\tTable: ${A}"
-  )
+  @implicitNotFound("\nCouldn't prove that where conditional is correct.\nCheck that condition uses columns that is presented in table")
   type Aux[A, C, Out0] = WhereAst[A, C] { type Out = Out0 }
 
-  implicit def forEq[A <: FSH, K, V, T](
+  implicit def forEq[A, K, V, T](
     implicit
     isFieldOf: IsFieldOf[A, Column[K, V, T]],
     s2s: Symbol2Str[K],

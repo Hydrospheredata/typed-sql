@@ -12,6 +12,7 @@ object FSHOps {
 
   object IsFieldOf {
   
+    implicit def forTable[k, v, T]: IsFieldOf[T, Column[k, v, T]] = null
     implicit def forFrom[k, v, T]: IsFieldOf[From[T], Column[k, v, T]] = null
 
 //    implicit def forIJ[a, rs, ru, c, t](

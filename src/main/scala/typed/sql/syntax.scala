@@ -43,7 +43,7 @@ object syntax extends ColumnSyntax {
       }
   }
 
-  implicit class WhereUpdateSyntax[S <: FSH, In1](upd: Update[S, In1]) {
+  implicit class WhereUpdateSyntax[S, In1](upd: Update[S, In1]) {
 
     def where[C <: WhereCond, In0 <: HList, O <: HList](c: C)(
       implicit

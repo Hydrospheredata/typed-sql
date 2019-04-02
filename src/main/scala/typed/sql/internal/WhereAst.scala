@@ -14,7 +14,7 @@ trait WhereAst[A, C] {
 
 object WhereAst {
   
-  @implicitNotFound("\nCouldn't prove that where conditional is correct.\nCheck that condition uses columns that is presented in table")
+  @implicitNotFound("Couldn't prove that where conditional is correct.\nCheck that condition uses columns that is presented in table")
   type Aux[A, C, Out0] = WhereAst[A, C] { type Out = Out0 }
 
   implicit def forEq[A, K, V, T](

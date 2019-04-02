@@ -1,17 +1,12 @@
 package typed.sql
 
-import shapeless.HNil
-import typed.sql.internal.WhereAst
+import shapeless.{HList, HNil, ProductArgs}
+import typed.sql.internal.UpdateAst
 
 sealed trait WhereFlag
 object WhereFlag {
-  
-  sealed trait WhereUsed extends WhereFlag
-  sealed trait WhereNotUsed extends WhereFlag
-  
-  case object WhereUsed extends WhereUsed
-  case object WhereNotUsed extends WhereNotUsed
-  
+  sealed trait Used extends WhereFlag
+  sealed trait NotUsed extends WhereFlag
 }
 
 trait SQLQuery[AST <: ast.QueryAST, In] {
@@ -19,31 +14,39 @@ trait SQLQuery[AST <: ast.QueryAST, In] {
   def params: In
 }
 
-trait Delete[T, In, WF] extends SQLQuery[ast.Delete, In] { self =>
-  
-  def where[C, In0](c: C)(implicit
-    ev: WF <:< WhereFlag.WhereNotUsed,
-    inf: WhereAst.Aux[T, C, In0],
-  ): Delete[T, In0, WhereFlag.WhereUsed] =
-    new Delete[T, In0, WhereFlag.WhereUsed] {
-      def astData: ast.Delete = self.astData.copy(where = Some(inf.mkAst(c)))
-      def params: In0 = inf.params(c)
-    }
-  
-}
+trait Delete[T, In, WF] extends SQLQuery[ast.Delete, In]
 
 trait DeleteSyntax {
   
   object delete {
-    def from[A, Rs, Ru](table: Table[A, Rs, Ru]): Delete[Table[A, Rs, Ru], HNil, WhereFlag.WhereNotUsed] =
-      new Delete[Table[A, Rs, Ru], HNil, WhereFlag.WhereNotUsed] {
+    def from[A, Rs, Ru](table: Table[A, Rs, Ru]): Delete[Table[A, Rs, Ru], HNil, WhereFlag.NotUsed] =
+      new Delete[Table[A, Rs, Ru], HNil, WhereFlag.NotUsed] {
         def astData: ast.Delete = ast.Delete(table.name, None)
         def params: HNil = HNil
       }
   }
 }
 
+trait Update[T, In, WF] extends SQLQuery[ast.Update, In]
 
+trait UpdateSyntax {
+  
+  class UpdateSetWord[A, Rs, Ru](table: Table[A, Rs, Ru]) {
+    
+    object set extends ProductArgs {
+      def applyProduct[In <: HList, R <: HList](values: In)(
+        implicit
+        inferUpdateSet: UpdateAst.Aux[Table[A, Rs, Ru], In, R]
+      ): Update[Table[A, Rs, Ru], R, WhereFlag.NotUsed] = new Update[Table[A, Rs, Ru], R, WhereFlag.NotUsed] {
+        override def astData: ast.Update = ast.Update(table.name, inferUpdateSet.mkAst(values), None)
+        override def params: R = inferUpdateSet.out(values)
+      }
+    }
+    
+  }
+  
+  def update[A, Rs, Ru](table: Table[A, Rs, Ru]): UpdateSetWord[A, Rs, Ru] = new UpdateSetWord(table)
+}
 
 case class Insert[In](astData: ast.InsertInto, in: In)
 
@@ -69,7 +72,3 @@ object Select {
   }
 }
 
-trait Update[S, In] {
-  def astData: ast.Update
-  def in: In
-}

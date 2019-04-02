@@ -5,13 +5,16 @@ import shapeless.ops.adjoin.Adjoin
 import typed.sql.internal.{OrderByInfer, WhereAst}
 import typed.sql.prefixes._
 
-object syntax extends ColumnSyntax with DeleteSyntax {
+object syntax
+  extends ColumnSyntax
+  with DeleteSyntax
+  with UpdateSyntax
+  with WhereSyntax
+  with DefaultUseWhereInstances$ {
 
   object select extends ProductArgs {
     def applyProduct[A](query: A): SelectionPrefix[A] = SelectionPrefix(query)
   }
-
-  def update[A, Rs, Ru](table: Table[A, Rs, Ru]): UpdationPrefix[A, Rs, Ru] = new UpdationPrefix(table)
 
   object insert {
 
@@ -27,19 +30,6 @@ object syntax extends ColumnSyntax with DeleteSyntax {
         type WhereFlag = Select.WhereDefined.type
         def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
         def in: In0 = inf.params(c)
-      }
-  }
-
-  implicit class WhereUpdateSyntax[S, In1](upd: Update[S, In1]) {
-
-    def where[C <: WhereCond, In0 <: HList, O <: HList](c: C)(
-      implicit
-      inf: WhereAst.Aux[S, C, In0],
-      adjoin: Adjoin.Aux[In1 :: In0 :: HNil, O]
-    ): Update[S, O] =
-      new Update[S, O] {
-        def astData: ast.Update = upd.astData.copy(where = Some(inf.mkAst(c)))
-        def in: O = adjoin(upd.in :: inf.params(c) :: HNil)
       }
   }
 

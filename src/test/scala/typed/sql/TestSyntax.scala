@@ -29,6 +29,7 @@ class TestSyntax extends FunSpec with Matchers{
 
     it("delete where") {
       val exp = ast.Delete("my_table", Some(ast.WhereEq(ast.Col("my_table", "a"))))
+      val x = delete.from(table1)
       delete.from(table1).where(a1 === 2).astData shouldBe exp
     }
     it("delete double where ill") {

@@ -111,21 +111,21 @@ object toDoobie {
     def toQuery(implicit mkWrite: MkWrite[In], read: Read[Out]): Query0[Out] = toFragment.query[Out](read)
   }
 
-  implicit class WrapDeletion[S <: FSH, In, WF](del: Delete[S, In, WF]) {
+//  implicit class WrapDeletion[S <: FSH, In, WF](del: Delete[S, In, WF]) {
+//
+//    def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
+//      val sql = renderDel(del.astData)
+//      Fragment[In](sql, del.params, None)(mkWrite(del.params))
+//    }
+//
+//    def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update
+//  }
 
-    def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
-      val sql = renderDel(del.astData)
-      Fragment[In](sql, del.params, None)(mkWrite(del.params))
-    }
-
-    def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update
-  }
-
-  implicit class WrapUpdation[S <: FSH, In](upd: Update[S, In]) {
+  implicit class WrapUpdation[S <: FSH, In, WF](upd: Update[S, In, WF]) {
 
     def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
       val sql = renderUpd(upd.astData)
-      Fragment[In](sql, upd.in, None)(mkWrite(upd.in))
+      Fragment[In](sql, upd.params, None)(mkWrite(upd.params))
     }
 
     def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update

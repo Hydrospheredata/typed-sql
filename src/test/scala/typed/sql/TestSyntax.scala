@@ -63,19 +63,19 @@ class TestSyntax extends FunSpec with Matchers{
       x.astData shouldBe ast.Update("my_table", List(ast.Set(ast.Col("my_table", "b"))), Some(ast.WhereEq(ast.Col("my_table", "a"))))
     }
   }
-//
-//  describe("insert into") {
-//
-//    it("insert all") {
-//      val x = insert.into(table1).values("b_value", "c_value")
-//      val data = x.astData
-//
-//      val exp = ast.InsertInto("my_table", List(ast.Col("my_table", "b"), ast.Col("my_table", "c")))
-//      data shouldBe exp
-//
-//      x.in shouldBe ("b_value" :: "c_value" :: HNil)
-//    }
-//  }
+
+  describe("insert into") {
+
+    it("insert all") {
+      val x = insert.into(table1).values("b_value", "c_value")
+      val data = x.astData
+
+      val exp = ast.InsertInto("my_table", List(ast.Col("my_table", "b"), ast.Col("my_table", "c")))
+      data shouldBe exp
+
+      x.params shouldBe ("b_value" :: "c_value" :: HNil)
+    }
+  }
 //
 //  describe("where") {
 //

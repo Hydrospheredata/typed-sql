@@ -9,19 +9,10 @@ object syntax
   extends ColumnSyntax
   with DeleteSyntax
   with UpdateSyntax
+  with InsertIntoSyntax
   with WhereSyntax
   with DefaultUseWhereInstances$ {
 
-  object select extends ProductArgs {
-    def applyProduct[A](query: A): SelectionPrefix[A] = SelectionPrefix(query)
-  }
-
-  object insert {
-
-    def into[A, Rs <: HList, Ru <: HList](table: Table[A, Rs, Ru]): InsertIntoPrefix[A, Rs, Ru] = new InsertIntoPrefix(table)
-  }
-
-  val `*` = All
 
   implicit class WhereSelectSyntax[S <: FSH, O](selection: Select[S, O, HNil]) {
 

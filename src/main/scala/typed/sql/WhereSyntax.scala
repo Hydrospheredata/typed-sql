@@ -51,6 +51,14 @@ trait DefaultUseWhereInstances$ {
     }
   }
   
+  implicit def forSelect[S, C, In0, ]
+  
+  def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Select[S, O, In0] =
+    new Select[S, O, In0] {
+      type WhereFlag = Select.WhereDefined.type
+      def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
+      def in: In0 = inf.params(c)
+    }
 }
 
 

@@ -131,11 +131,11 @@ object toDoobie {
     def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update
   }
 
-  implicit class WrapIns[In](ins: Insert[In]) {
+  implicit class WrapIns[T, In](ins: InsertInto[T, In]) {
 
     def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
       val sql = renderInsInto(ins.astData)
-      Fragment[In](sql, ins.in, None)(mkWrite(ins.in))
+      Fragment[In](sql, ins.params, None)(mkWrite(ins.params))
     }
 
     def toUpdate(implicit mkWrite: MkWrite[In]): Update0 = toFragment.update

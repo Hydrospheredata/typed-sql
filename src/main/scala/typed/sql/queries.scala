@@ -1,7 +1,7 @@
 package typed.sql
 
-import shapeless.{HList, HNil, ProductArgs}
-import typed.sql.internal.UpdateAst
+import shapeless.{Generic, HList, HNil, ProductArgs}
+import typed.sql.internal.{InsertValuesInfer, SelectInfer, UpdateAst}
 
 sealed trait WhereFlag
 object WhereFlag {
@@ -31,7 +31,7 @@ trait Update[T, In, WF] extends SQLQuery[ast.Update, In]
 
 trait UpdateSyntax {
   
-  class UpdateSetWord[A, Rs, Ru](table: Table[A, Rs, Ru]) {
+  class SetWord[A, Rs, Ru](table: Table[A, Rs, Ru]) {
     
     object set extends ProductArgs {
       def applyProduct[In <: HList, R <: HList](values: In)(
@@ -45,30 +45,58 @@ trait UpdateSyntax {
     
   }
   
-  def update[A, Rs, Ru](table: Table[A, Rs, Ru]): UpdateSetWord[A, Rs, Ru] = new UpdateSetWord(table)
+  def update[A, Rs, Ru](table: Table[A, Rs, Ru]): SetWord[A, Rs, Ru] = new SetWord(table)
 }
 
-case class Insert[In](astData: ast.InsertInto, in: In)
-
-trait Select[S <: FSH, Out, In] {
-  type WhereFlag <: Select.HasWhere
-
-  def astData: ast.Select[Out]
-  def in: In
-}
-
-object Select {
-
-  sealed trait HasWhere
-  case object WhereDefined extends HasWhere
-  case object WithoutWhere extends HasWhere
-
-  def create[S <: FSH, Out](select: ast.Select[Out]): Select[S, Out, HNil] = {
-    new Select[S, Out , HNil] {
-      type WhereFlag = WithoutWhere.type
-      val astData: ast.Select[Out] = select
-      val in: HNil = HNil
+trait InsertInto[T, In] extends SQLQuery[ast.InsertInto, In]
+trait InsertIntoSyntax {
+  
+  class ValuesWord[A, Rs, Ru](table: Table[A, Rs, Ru]) {
+  
+    def values[In, In2 <: HList](vs: In)(
+      implicit
+      gen: Generic.Aux[In, In2],
+      inferInsertValues: InsertValuesInfer[Ru, In2]
+    ): InsertInto[Table[A, Rs, Ru], In2] = {
+      
+      val n = table.name
+      val cols = inferInsertValues.columns.map(v => ast.Col(n, v))
+      val in = gen.to(vs)
+      
+      new InsertInto[Table[A, Rs, Ru], In2] {
+        override def astData: ast.InsertInto = ast.InsertInto(table.name, cols)
+        override def params: In2 = in
+      }
     }
+    
   }
+  
+  object insert {
+    def into[A, Rs <: HList, Ru <: HList](table: Table[A, Rs, Ru]): ValuesWord[A, Rs, Ru] = new ValuesWord(table)
+  }
+}
+
+trait Select[S, In, Out, WF] extends SQLQuery[ast.Select[Out], In]
+object SelectSyntax {
+  
+  class FromWord[Q](query: Q) {
+    
+    def from[S, O](shape: S)(
+      implicit
+      inf: SelectInfer.Aux[S, Q, O]
+    ): Select[S, HNil, O, WhereFlag.NotUsed] = {
+      new Select[S, HNil, O, WhereFlag.NotUsed] {
+        override def astData: ast.Select[O] = inf.mkAst(shape)
+        override def params: HNil = HNil
+      }
+    }
+    
+  }
+  
+  object select extends ProductArgs {
+    def applyProduct[Q](query: Q): FromWord[Q] = new FromWord(query)
+  }
+  
+  val `*` = All
 }
 

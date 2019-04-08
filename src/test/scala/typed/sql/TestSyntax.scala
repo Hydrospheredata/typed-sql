@@ -137,7 +137,17 @@ class TestSyntax extends FunSpec with Matchers{
 //    }
 //  }
 //
-//  describe("select") {
+  describe("select") {
+    
+    it("for field") {
+       val x = select(a1).from(table1)
+       x.astData shouldBe ast.Select(List(ast.Col("my_table", "a")), ast.From("my_table", List.empty), None, None, None, None)
+    }
+    
+//    it("for *") {
+//      val x = select(*).from(table1)
+//      x.astData shouldBe ast.Select(List(ast.Col("my_table", "a"), ast.Col("my_table", "b")), ast.From("my_table", List.empty), None, None, None, None)
+//    }
 //
 //
 //    describe("order by ") {
@@ -202,5 +212,5 @@ class TestSyntax extends FunSpec with Matchers{
 //        data shouldBe exp
 //      }
 //    }
-//  }
+  }
 }

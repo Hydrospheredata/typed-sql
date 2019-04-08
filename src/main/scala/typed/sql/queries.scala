@@ -77,7 +77,7 @@ trait InsertIntoSyntax {
 }
 
 trait Select[S, In, Out, WF] extends SQLQuery[ast.Select[Out], In]
-object SelectSyntax {
+trait SelectSyntax {
   
   class FromWord[Q](query: Q) {
     
@@ -86,7 +86,7 @@ object SelectSyntax {
       inf: SelectInfer.Aux[S, Q, O]
     ): Select[S, HNil, O, WhereFlag.NotUsed] = {
       new Select[S, HNil, O, WhereFlag.NotUsed] {
-        override def astData: ast.Select[O] = inf.mkAst(shape)
+        override def astData: ast.Select[O] = inf.mkAst(shape, query)
         override def params: HNil = HNil
       }
     }
@@ -99,4 +99,5 @@ object SelectSyntax {
   
   val `*` = All
 }
+object SelectSyntax extends SelectSyntax
 

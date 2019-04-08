@@ -18,7 +18,7 @@ object UseWhere {
   def apply[A, C, O](implicit instance: UseWhere.Aux[A, C, O]): UseWhere.Aux[A, C, O] = instance
 }
 
-trait DefaultUseWhereInstances$ {
+trait DefaultUseWhereInstances {
 
   implicit def forUpdate[T, C, In0 <: HList, In1 <: HList, O <: HList](implicit
     inf: WhereAst.Aux[T, C, In1],
@@ -51,18 +51,26 @@ trait DefaultUseWhereInstances$ {
     }
   }
   
-  implicit def forSelect[S, C, In0, ]
-  
-  def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Select[S, O, In0] =
-    new Select[S, O, In0] {
-      type WhereFlag = Select.WhereDefined.type
-      def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
-      def in: In0 = inf.params(c)
+  implicit def forSelect[S, C, In0 <: HList, In1 <: HList, O <: HList, SOut](implicit
+    inf: WhereAst.Aux[S, C, In1],
+    adjoin: Adjoin.Aux[In0 :: In1 :: HNil, O]
+  ): UseWhere.Aux[Select[S, In0, SOut, WhereFlag.NotUsed], C, Select[S, O, SOut, WhereFlag.Used]] = {
+    
+    new UseWhere[Select[S, In0, SOut, WhereFlag.NotUsed], C] {
+      type Out = Select[S, O, SOut, WhereFlag.Used]
+      override def apply(a: Select[S, In0, SOut, WhereFlag.NotUsed], c: C): Select[S, O, SOut, WhereFlag.Used] = {
+        new Select[S, O, SOut, WhereFlag.Used] {
+          override def astData: ast.Select[SOut] = a.astData.copy(where = Some(inf.mkAst(c)))
+          override def params: O = adjoin(a.params :: inf.params(c) :: HNil)
+        }
+      }
     }
+  }
+  
 }
 
 
-object DefaultUseWhereInstances$ extends DefaultUseWhereInstances$
+object DefaultUseWhereInstances$ extends DefaultUseWhereInstances
 
 trait WhereSyntax {
   implicit final def toWhereWord[A](a: A): WhereWord[A] = new WhereWord[A](a)

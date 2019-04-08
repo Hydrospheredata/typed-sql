@@ -10,56 +10,57 @@ object syntax
   with DeleteSyntax
   with UpdateSyntax
   with InsertIntoSyntax
+  with SelectSyntax
   with WhereSyntax
-  with DefaultUseWhereInstances$ {
+  with DefaultUseWhereInstances {
 
 
-  implicit class WhereSelectSyntax[S <: FSH, O](selection: Select[S, O, HNil]) {
-
-    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Select[S, O, In0] =
-      new Select[S, O, In0] {
-        type WhereFlag = Select.WhereDefined.type
-        def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
-        def in: In0 = inf.params(c)
-      }
-  }
-
-  implicit class OrderBySelectSyntax[S <: FSH, O, In](sel: Select[S, O, In]) {
-
-    object orderBy extends ProductArgs {
-      def applyProduct[C <: HList](c: C)(implicit inf: OrderByInfer[S, C]): Select[S, O, In] = {
-        new Select[S, O, In] {
-          type WhereFlag = sel.WhereFlag
-          val astData: ast.Select[O] = {
-            val ord = ast.OrderBy(inf.columns)
-            sel.astData.copy(orderBy = Some(ord))
-          }
-          val in: In = sel.in
-        }
-      }
-    }
-  }
-
-  implicit class LimitOffsetSyntax[S <: FSH, O, In](sel: Select[S, O, In]) {
-
-    def limit[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Select[S, O, J] =
-        new Select[S, O, J] {
-          type WhereFlag = sel.WhereFlag
-          val astData: ast.Select[O] = {
-            sel.astData.copy(limit = Some(i))
-          }
-          val in: J = adjoin(sel.in :: i :: HNil)
-        }
-
-    def offset[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Select[S, O, J] =
-      new Select[S, O, J] {
-        type WhereFlag = sel.WhereFlag
-        val astData: ast.Select[O] = {
-          sel.astData.copy(offset = Some(i))
-        }
-        val in: J = adjoin(sel.in :: i :: HNil)
-      }
-  }
+//  implicit class WhereSelectSyntax[S <: FSH, O](selection: Select[S, O, HNil]) {
+//
+//    def where[C <: WhereCond, In0 <: HList](c: C)(implicit inf: WhereAst.Aux[S, C, In0]): Select[S, O, In0] =
+//      new Select[S, O, In0] {
+//        type WhereFlag = Select.WhereDefined.type
+//        def astData: ast.Select[O] = selection.astData.copy(where = Some(inf.mkAst(c)))
+//        def in: In0 = inf.params(c)
+//      }
+//  }
+//
+//  implicit class OrderBySelectSyntax[S <: FSH, O, In](sel: Select[S, O, In]) {
+//
+//    object orderBy extends ProductArgs {
+//      def applyProduct[C <: HList](c: C)(implicit inf: OrderByInfer[S, C]): Select[S, O, In] = {
+//        new Select[S, O, In] {
+//          type WhereFlag = sel.WhereFlag
+//          val astData: ast.Select[O] = {
+//            val ord = ast.OrderBy(inf.columns)
+//            sel.astData.copy(orderBy = Some(ord))
+//          }
+//          val in: In = sel.in
+//        }
+//      }
+//    }
+//  }
+//
+//  implicit class LimitOffsetSyntax[S <: FSH, O, In](sel: Select[S, O, In]) {
+//
+//    def limit[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Select[S, O, J] =
+//        new Select[S, O, J] {
+//          type WhereFlag = sel.WhereFlag
+//          val astData: ast.Select[O] = {
+//            sel.astData.copy(limit = Some(i))
+//          }
+//          val in: J = adjoin(sel.in :: i :: HNil)
+//        }
+//
+//    def offset[J <: HList](i: Int)(implicit adjoin: Adjoin.Aux[In :: Int :: HNil, J]): Select[S, O, J] =
+//      new Select[S, O, J] {
+//        type WhereFlag = sel.WhereFlag
+//        val astData: ast.Select[O] = {
+//          sel.astData.copy(offset = Some(i))
+//        }
+//        val in: J = adjoin(sel.in :: i :: HNil)
+//      }
+//  }
 
 //  implicit class JoinSyntax[A <: FSH](shape: A) {
 //

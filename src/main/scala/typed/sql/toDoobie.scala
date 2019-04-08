@@ -101,15 +101,15 @@ object toDoobie {
     s"INSERT INTO ${ins.table} $columns VALUES $values"
   }
 
-  implicit class WrapSelection[S <: FSH, Out, In](sel: Select[S, Out, In]) {
-
-    def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
-      val sql = renderSel(sel.astData)
-      Fragment[In](sql, sel.in, None)(mkWrite(sel.in))
-    }
-
-    def toQuery(implicit mkWrite: MkWrite[In], read: Read[Out]): Query0[Out] = toFragment.query[Out](read)
-  }
+//  implicit class WrapSelection[S <: FSH, Out, In](sel: Select[S, Out, In]) {
+//
+//    def toFragment(implicit mkWrite: MkWrite[In]): Fragment = {
+//      val sql = renderSel(sel.astData)
+//      Fragment[In](sql, sel.in, None)(mkWrite(sel.in))
+//    }
+//
+//    def toQuery(implicit mkWrite: MkWrite[In], read: Read[Out]): Query0[Out] = toFragment.query[Out](read)
+//  }
 
 //  implicit class WrapDeletion[S <: FSH, In, WF](del: Delete[S, In, WF]) {
 //

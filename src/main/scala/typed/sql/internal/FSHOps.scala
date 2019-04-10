@@ -66,7 +66,7 @@ object FSHOps {
 //  }
 
 
-//  trait AllColumns[A <: FSH] {
+//  trait AllColumnVs[A <: FSH] {
 //    def columns: List[ast.Col]
 //  }
 //

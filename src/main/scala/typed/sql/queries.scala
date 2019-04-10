@@ -97,7 +97,7 @@ trait SelectSyntax {
     def applyProduct[Q](query: Q): FromWord[Q] = new FromWord(query)
   }
   
-  val `*` = All
+  val `*`  = All
 }
 object SelectSyntax extends SelectSyntax
 

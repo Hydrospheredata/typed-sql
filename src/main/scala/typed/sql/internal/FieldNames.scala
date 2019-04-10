@@ -3,7 +3,7 @@ package typed.sql.internal
 import shapeless.labelled.FieldType
 import shapeless.{HList, HNil, Witness, _}
 
-trait FieldNames[A <: HList] {
+trait FieldNames[A] {
   def apply(): List[String]
 }
 
@@ -15,12 +15,11 @@ object FieldNames {
 
   implicit def hCons[T <: HList, K, V](
     implicit
-    wit: Witness.Aux[K],
-    ev2: K <:< Symbol,
+    s2s: Symbol2Str[K],
     next: FieldNames[T]
   ): FieldNames[FieldType[K, V] :: T] = {
     new FieldNames[FieldType[K, V] :: T] {
-      override def apply(): List[String] =  wit.value.name :: next()
+      override def apply(): List[String] =  s2s.str :: next()
     }
   }
 

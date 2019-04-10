@@ -3,7 +3,6 @@ package typed.sql.internal
 import shapeless._
 import shapeless.labelled.FieldType
 import shapeless.ops.record.Values
-//import typed.sql.{TR0, ast}
 
 trait InsertValuesInfer[A, V] {
   def columns: List[String]
